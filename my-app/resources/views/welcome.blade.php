@@ -127,7 +127,7 @@
             </div>
         </div>
 
-        <button class="add-btn">+ Add News Habit</button>
+        <button class="add-btn">+ Add News Habitsss</button>
 
         <!-- Bottom Nav -->
         <nav class="bottom-nav">
