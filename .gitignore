@@ -1,0 +1,5 @@
+# Claude Code local config
+.claude/
+
+# Unrelated folders
+Atomic Habbits book/
