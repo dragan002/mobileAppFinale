@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CompletionController;
 use App\Http\Controllers\Api\HabitController;
 use App\Http\Controllers\Api\ReflectionController;
+use App\Http\Controllers\Api\ResetController;
 use App\Http\Controllers\Api\SetupController;
 use App\Http\Controllers\Api\StateController;
 use Illuminate\Support\Facades\Route;
@@ -17,4 +18,5 @@ Route::prefix('api')->group(function () {
     Route::delete('/habits/{habit}', [HabitController::class, 'destroy']);
     Route::post('/completions/toggle', [CompletionController::class, 'toggle']);
     Route::post('/reflections', [ReflectionController::class, 'store']);
+    Route::delete('/reset', [ResetController::class, 'destroy']);
 });

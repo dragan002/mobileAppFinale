@@ -271,6 +271,44 @@
         /* Scrollbar */
         ::-webkit-scrollbar { display: none; }
         * { -webkit-tap-highlight-color: transparent; }
+
+        /* ── PROFILE SHEET ── */
+        .profile-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; }
+        .profile-sheet-backdrop.show { opacity: 1; pointer-events: all; }
+        .profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #0f0f1a; border-top: 1px solid #2a2a40; border-radius: 1.5rem 1.5rem 0 0; z-index: 201; max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0); padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .profile-sheet.show { transform: translateY(0); transition-timing-function: cubic-bezier(.33,1,.68,1); }
+        .profile-sheet-handle { width: 2.5rem; height: 4px; background: #2a2a40; border-radius: 999px; margin: 0.875rem auto 0; }
+        .profile-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem 0.5rem; }
+        .profile-sheet-title { font-size: 1.1rem; font-weight: 700; }
+        .profile-sheet-close { background: #1a1a28; border: none; color: #aaa; font-size: 1rem; width: 2rem; height: 2rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .profile-sheet-section { padding: 1rem 1.25rem 0; }
+        .profile-sheet-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 0.75rem; }
+        .profile-identity-hero { display: flex; align-items: center; gap: 1rem; background: #14141e; border: 1px solid #1e1e2e; border-radius: 1rem; padding: 1rem; margin-bottom: 0.75rem; }
+        .profile-identity-icon { font-size: 2.5rem; line-height: 1; flex-shrink: 0; }
+        .profile-identity-info { flex: 1; min-width: 0; }
+        .profile-identity-name { font-size: 1.1rem; font-weight: 700; }
+        .profile-identity-label { font-size: 0.78rem; color: #a78bfa; margin-top: 0.15rem; }
+        .profile-stat-row { display: flex; gap: 0.6rem; margin-bottom: 0.75rem; }
+        .profile-stat-box { flex: 1; background: #14141e; border: 1px solid #1e1e2e; border-radius: 1rem; padding: 0.875rem 0.75rem; text-align: center; }
+        .profile-stat-val { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
+        .profile-stat-lbl { font-size: 0.62rem; color: #555; margin-top: 0.25rem; line-height: 1.3; }
+        .profile-votes-line { background: #14141e; border: 1px solid #1e1e2e; border-left: 3px solid #7c3aed; border-radius: 0 0.75rem 0.75rem 0; padding: 0.875rem 1rem; font-size: 0.82rem; color: #888; line-height: 1.6; margin-bottom: 0.75rem; }
+        .profile-votes-line strong { color: #ccc; }
+        .profile-divider { height: 1px; background: #1a1a28; margin: 0.5rem 0 1rem; }
+        .profile-form-group { margin-bottom: 1rem; }
+        .profile-form-label { font-size: 0.78rem; color: #888; margin-bottom: 0.5rem; display: block; }
+        .profile-form-input { width: 100%; background: #14141e; border: 2px solid #1e1e2e; border-radius: 0.75rem; padding: 0.875rem 1rem; color: #fff; font-size: 0.92rem; font-family: inherit; outline: none; transition: border-color .2s; }
+        .profile-form-input:focus { border-color: #7c3aed; }
+        .profile-identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+        .profile-identity-option { background: #14141e; border: 2px solid #1e1e2e; border-radius: 0.875rem; padding: 0.875rem 0.75rem; cursor: pointer; transition: all .2s; text-align: center; }
+        .profile-identity-option:active { transform: scale(0.97); }
+        .profile-identity-option.selected { border-color: #a78bfa; background: #1f1535; }
+        .profile-identity-option .pi-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+        .profile-identity-option .pi-label { font-size: 0.78rem; font-weight: 600; color: #ddd; }
+        .btn-save-profile { width: 100%; padding: 1rem; background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.875rem; color: #fff; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity .2s; margin-bottom: 0.75rem; }
+        .btn-save-profile:active { opacity: 0.85; }
+        .btn-reset-data { width: 100%; padding: 1rem; background: transparent; border: 2px solid #ef444444; border-radius: 0.875rem; color: #ef4444; font-size: 0.9rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; margin-bottom: 1.5rem; }
+        .btn-reset-data:active { background: #ef444411; }
     </style>
 </head>
 <body>
@@ -304,6 +342,87 @@
     <textarea class="wr-textarea" id="wr-note" placeholder="Write a short note... (optional)"></textarea>
 
     <button class="wr-save-btn" onclick="saveWeeklyReview()">Save Reflection</button>
+</div>
+
+<!-- ══════════════════ PROFILE SHEET ══════════════════ -->
+<div class="profile-sheet-backdrop" id="profile-sheet-backdrop" onclick="closeProfileSheet()"></div>
+<div class="profile-sheet" id="profile-sheet">
+    <div class="profile-sheet-handle"></div>
+    <div class="profile-sheet-header">
+        <div class="profile-sheet-title">Your Profile</div>
+        <button class="profile-sheet-close" onclick="closeProfileSheet()">✕</button>
+    </div>
+
+    <!-- Identity Dashboard -->
+    <div class="profile-sheet-section">
+        <div class="profile-sheet-section-label">Identity</div>
+        <div class="profile-identity-hero">
+            <div class="profile-identity-icon" id="ps-identity-icon">🏃</div>
+            <div class="profile-identity-info">
+                <div class="profile-identity-name" id="ps-user-name">—</div>
+                <div class="profile-identity-label" id="ps-identity-label">—</div>
+            </div>
+        </div>
+        <div class="profile-stat-row">
+            <div class="profile-stat-box">
+                <div class="profile-stat-val" id="ps-days-using">0</div>
+                <div class="profile-stat-lbl">Days using<br>AtomicMe</div>
+            </div>
+            <div class="profile-stat-box">
+                <div class="profile-stat-val" id="ps-total-completions">0</div>
+                <div class="profile-stat-lbl">Total<br>Completions</div>
+            </div>
+            <div class="profile-stat-box">
+                <div class="profile-stat-val" id="ps-best-streak">0</div>
+                <div class="profile-stat-lbl">Longest<br>Streak</div>
+            </div>
+        </div>
+        <div class="profile-votes-line" id="ps-votes-line">
+            You have cast <strong id="ps-votes-count">0</strong> votes for being <strong id="ps-votes-identity">—</strong>.
+        </div>
+    </div>
+
+    <div class="profile-sheet-section">
+        <div class="profile-divider"></div>
+        <div class="profile-sheet-section-label">Edit Profile</div>
+
+        <div class="profile-form-group">
+            <label class="profile-form-label">Your name</label>
+            <input type="text" class="profile-form-input" id="ps-name-input" maxlength="20" placeholder="Your name">
+        </div>
+
+        <div class="profile-form-group">
+            <label class="profile-form-label">Your identity</label>
+            <div class="profile-identity-grid" id="ps-identity-grid">
+                <div class="profile-identity-option" data-id="athlete" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">🏃</div><div class="pi-label">The Athlete</div>
+                </div>
+                <div class="profile-identity-option" data-id="learner" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">📚</div><div class="pi-label">The Learner</div>
+                </div>
+                <div class="profile-identity-option" data-id="creator" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">🎨</div><div class="pi-label">The Creator</div>
+                </div>
+                <div class="profile-identity-option" data-id="mindful" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">🧘</div><div class="pi-label">The Mindful</div>
+                </div>
+                <div class="profile-identity-option" data-id="leader" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">🚀</div><div class="pi-label">The Leader</div>
+                </div>
+                <div class="profile-identity-option" data-id="healthy" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">🥗</div><div class="pi-label">The Healthy</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-save-profile" onclick="saveProfileChanges()">Save Changes</button>
+    </div>
+
+    <div class="profile-sheet-section">
+        <div class="profile-divider"></div>
+        <div class="profile-sheet-section-label">Danger Zone</div>
+        <button class="btn-reset-data" onclick="confirmResetData()">Reset All Data</button>
+    </div>
 </div>
 
 <!-- ══════════════════ SCREEN: ONBOARDING ══════════════════ -->
@@ -350,7 +469,7 @@
             <h2 id="home-greeting">Good morning 👋</h2>
             <p id="home-date"></p>
         </div>
-        <div class="avatar" id="home-avatar" onclick="showHabitDetail(null)">?</div>
+        <div class="avatar" id="home-avatar" onclick="openProfileSheet()">?</div>
     </div>
 
     <div class="progress-card">
@@ -1737,6 +1856,123 @@ async function saveWeeklyReview() {
     try {
         await api('POST', '/api/reflections', { week_of: weekOf, note });
     } catch(e) { /* non-critical — local state already updated */ }
+}
+
+// ══════════════════════════════════════════
+//  PROFILE SHEET
+// ══════════════════════════════════════════
+let profileSelectedIdentity = null;
+
+function openProfileSheet() {
+    if (!state.user) { return; }
+    const u = state.user;
+
+    // Compute stats
+    const identityData = IDENTITY_MAP[u.identity] || { label: u.identityLabel, icon: u.identityIcon };
+
+    // Days using the app: diff between earliest completion date OR user createdAt and today
+    let earliestDate = null;
+    Object.keys(state.completions).forEach(dateKey => {
+        if (state.completions[dateKey].length > 0) {
+            if (!earliestDate || dateKey < earliestDate) { earliestDate = dateKey; }
+        }
+    });
+    let daysUsing = 0;
+    if (earliestDate) {
+        const start = new Date(earliestDate);
+        const now   = new Date();
+        daysUsing = Math.max(1, Math.round((now - start) / 86400000) + 1);
+    } else if (u.createdAt) {
+        const start = new Date(u.createdAt);
+        const now   = new Date();
+        daysUsing = Math.max(1, Math.round((now - start) / 86400000) + 1);
+    } else {
+        daysUsing = 1;
+    }
+
+    // Total completions across all habits
+    let totalCompletions = 0;
+    Object.values(state.completions).forEach(arr => { totalCompletions += arr.length; });
+
+    // Longest streak across all habits
+    const longestStreak = state.habits.length > 0
+        ? Math.max(...state.habits.map(h => Math.max(state.bestStreaks[h.id] || 0, state.streaks[h.id] || 0)))
+        : 0;
+
+    // Populate identity dashboard
+    document.getElementById('ps-identity-icon').textContent  = identityData.icon;
+    document.getElementById('ps-user-name').textContent      = u.name;
+    document.getElementById('ps-identity-label').textContent = identityData.label;
+    document.getElementById('ps-days-using').textContent     = daysUsing;
+    document.getElementById('ps-total-completions').textContent = totalCompletions;
+    document.getElementById('ps-best-streak').textContent    = longestStreak;
+    document.getElementById('ps-votes-count').textContent    = totalCompletions;
+    document.getElementById('ps-votes-identity').textContent = identityData.label;
+
+    // Populate edit form
+    document.getElementById('ps-name-input').value = u.name;
+    profileSelectedIdentity = u.identity;
+    document.querySelectorAll('.profile-identity-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.id === u.identity);
+    });
+
+    // Show sheet
+    document.getElementById('profile-sheet-backdrop').classList.add('show');
+    document.getElementById('profile-sheet').classList.add('show');
+}
+
+function closeProfileSheet() {
+    document.getElementById('profile-sheet-backdrop').classList.remove('show');
+    document.getElementById('profile-sheet').classList.remove('show');
+}
+
+function selectProfileIdentity(el) {
+    document.querySelectorAll('.profile-identity-option').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    profileSelectedIdentity = el.dataset.id;
+}
+
+async function saveProfileChanges() {
+    const name = document.getElementById('ps-name-input').value.trim();
+    if (!name) { showToast('Please enter your name.'); return; }
+    if (!profileSelectedIdentity) { showToast('Please choose an identity.'); return; }
+
+    const identity = IDENTITY_MAP[profileSelectedIdentity];
+
+    // Optimistic update
+    state.user = { ...state.user, name, identity: profileSelectedIdentity, identityLabel: identity.label, identityIcon: identity.icon };
+    saveLocal();
+    renderHome();
+    closeProfileSheet();
+    showToast(`Profile updated! You are ${identity.label}.`, 'purple');
+
+    // Sync to backend
+    try {
+        await api('POST', '/api/setup', {
+            name,
+            identity: profileSelectedIdentity,
+            identityLabel: identity.label,
+            identityIcon: identity.icon,
+        });
+    } catch(e) { /* keep optimistic state */ }
+}
+
+async function confirmResetData() {
+    const confirmed = confirm('Are you sure? This will delete all your habits and progress. This cannot be undone.');
+    if (!confirmed) { return; }
+
+    try {
+        await api('DELETE', '/api/reset');
+    } catch(e) { /* proceed with client-side reset regardless */ }
+
+    // Clear all local state and storage
+    localStorage.removeItem('atomicme_v3');
+    localStorage.removeItem('atomicme_reminders');
+    localStorage.removeItem('atomicme_last_reviewed_week');
+    state = { user: null, habits: [], completions: {}, streaks: {}, bestStreaks: {} };
+
+    closeProfileSheet();
+    showScreen('screen-onboarding');
 }
 </script>
 </body>

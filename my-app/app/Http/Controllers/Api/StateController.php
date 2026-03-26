@@ -44,15 +44,16 @@ class StateController extends Controller
 
         return response()->json([
             'user' => [
-                'name'          => $user->name,
-                'identity'      => $user->identity,
+                'name' => $user->name,
+                'identity' => $user->identity,
                 'identityLabel' => $user->identity_label,
-                'identityIcon'  => $user->identity_icon,
+                'identityIcon' => $user->identity_icon,
+                'createdAt' => $user->created_at?->toDateString(),
             ],
-            'habits'      => $habits->map->toApiArray()->values(),
+            'habits' => $habits->map->toApiArray()->values(),
             'completions' => $completionsMap,
-            'streaks'     => $streaks,
-            'bestStreaks'  => $bestStreaks,
+            'streaks' => $streaks,
+            'bestStreaks' => $bestStreaks,
         ]);
     }
 }
