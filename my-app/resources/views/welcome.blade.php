@@ -78,6 +78,7 @@
         .habit-meta { font-size: 0.72rem; color: #666; margin-top: 0.15rem; }
         .habit-streak { font-size: 0.7rem; font-weight: 600; color: #f97316; margin-top: 0.2rem; }
         .habit-streak.at-risk-text { color: #f97316; }
+        .habit-streak.grace-day-text { color: #a78bfa; }
         .habit-check { width: 1.75rem; height: 1.75rem; border-radius: 50%; border: 2px solid #2a2a40; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; cursor: pointer; }
         .habit-check:active { transform: scale(0.88); }
         .habit-item.completed .habit-check { background: #22c55e; border-color: #22c55e; }
@@ -208,6 +209,30 @@
         .btn-complete.is-done { background: #1a3024; color: #22c55e; border: 2px solid #22c55e44; }
         .btn-complete:active { opacity: 0.85; transform: scale(0.98); }
 
+        .setup-card { margin: 0 1.25rem 0.75rem; background: #14141e; border: 1px solid #1e1e2e; border-radius: 1rem; padding: 1rem; }
+        .setup-card-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: #666; margin-bottom: 0.875rem; }
+        .setup-field { margin-bottom: 0.75rem; }
+        .setup-field:last-child { margin-bottom: 0; }
+        .setup-field-label { font-size: 0.7rem; color: #555; margin-bottom: 0.2rem; }
+        .setup-field-value { font-size: 0.85rem; color: #bbb; line-height: 1.5; }
+
+        /* ── REMINDER TOGGLE ── */
+        .reminder-card { margin: 0 1.25rem 0.75rem; background: #14141e; border: 1px solid #1e1e2e; border-radius: 1rem; padding: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .reminder-card-info { flex: 1; min-width: 0; }
+        .reminder-card-title { font-size: 0.88rem; font-weight: 600; color: #ddd; }
+        .reminder-card-sub { font-size: 0.72rem; color: #555; margin-top: 0.2rem; }
+        .reminder-toggle { position: relative; width: 2.75rem; height: 1.5rem; flex-shrink: 0; }
+        .reminder-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .reminder-toggle-track { position: absolute; inset: 0; background: #2a2a40; border-radius: 999px; cursor: pointer; transition: background .2s; }
+        .reminder-toggle input:checked + .reminder-toggle-track { background: #7c3aed; }
+        .reminder-toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 1.125rem; height: 1.125rem; background: #fff; border-radius: 50%; transition: transform .2s; }
+        .reminder-toggle input:checked + .reminder-toggle-track::after { transform: translateX(1.25rem); }
+        .reminder-permission-banner { margin: 0 1.25rem 0.75rem; background: #1a1020; border: 1px solid #7c3aed44; border-radius: 1rem; padding: 0.875rem 1rem; display: none; align-items: center; gap: 0.75rem; }
+        .reminder-permission-banner.show { display: flex; }
+        .reminder-permission-banner-text { flex: 1; font-size: 0.8rem; color: #888; line-height: 1.5; }
+        .reminder-permission-banner-text strong { color: #a78bfa; display: block; margin-bottom: 0.15rem; }
+        .btn-allow-notifs { background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.625rem; color: #fff; font-size: 0.8rem; font-weight: 600; font-family: inherit; padding: 0.5rem 0.875rem; cursor: pointer; white-space: nowrap; }
+
         /* ── MILESTONE OVERLAY ── */
         .milestone-overlay { position: fixed; inset: 0; background: rgba(10,10,16,0.96); z-index: 999; display: none; align-items: center; justify-content: center; padding: 2rem; }
         .milestone-overlay.show { display: flex; }
@@ -217,6 +242,26 @@
         .milestone-sub-text { font-size: 0.9rem; color: #888; margin-bottom: 1.5rem; line-height: 1.5; }
         .milestone-quote-text { font-size: 0.82rem; color: #a78bfa; font-style: italic; margin-bottom: 2rem; line-height: 1.7; padding: 1rem; background: #1a1a28; border-radius: 0.875rem; }
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ── WEEKLY REVIEW OVERLAY ── */
+        .weekly-review-overlay { position: fixed; inset: 0; background: rgba(10,10,16,0.97); z-index: 999; display: none; flex-direction: column; overflow-y: auto; padding: 2rem 1.5rem 2.5rem; }
+        .weekly-review-overlay.show { display: flex; }
+        .wr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+        .wr-title { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .wr-skip-btn { font-size: 0.8rem; color: #555; background: none; border: none; font-family: inherit; cursor: pointer; padding: 0.5rem; }
+        .wr-sub { font-size: 0.82rem; color: #666; margin-bottom: 1.5rem; line-height: 1.6; }
+        .wr-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 0.6rem; }
+        .wr-habit-row { display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.875rem; background: #14141e; border: 1px solid #1e1e2e; border-radius: 0.75rem; margin-bottom: 0.5rem; }
+        .wr-habit-left { display: flex; align-items: center; gap: 0.6rem; font-size: 0.875rem; font-weight: 600; }
+        .wr-habit-pct { font-size: 0.75rem; font-weight: 700; }
+        .wr-habit-pct.good { color: #22c55e; }
+        .wr-habit-pct.ok   { color: #f97316; }
+        .wr-habit-pct.low  { color: #ef4444; }
+        .wr-question { font-size: 0.92rem; font-weight: 600; color: #ccc; margin: 1.25rem 0 0.6rem; line-height: 1.4; }
+        .wr-textarea { width: 100%; min-height: 5rem; background: #14141e; border: 2px solid #2a2a40; border-radius: 0.875rem; padding: 0.875rem 1rem; color: #fff; font-size: 0.9rem; font-family: inherit; outline: none; resize: none; line-height: 1.6; }
+        .wr-textarea:focus { border-color: #a78bfa; }
+        .wr-save-btn { margin-top: 1.25rem; width: 100%; padding: 1rem; background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.875rem; color: #fff; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity .2s; }
+        .wr-save-btn:active { opacity: 0.85; }
 
         /* Toast */
         .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-80px); background: #22c55e; color: #fff; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; z-index: 998; transition: transform .3s; white-space: nowrap; max-width: calc(100% - 2rem); text-align: center; }
@@ -242,6 +287,23 @@
         <div class="milestone-quote-text" id="milestone-quote">"You do not rise to the level of your goals. You fall to the level of your systems."</div>
         <button class="btn-primary" onclick="closeMilestone()">Keep Going! 🚀</button>
     </div>
+</div>
+
+<!-- WEEKLY REVIEW OVERLAY -->
+<div class="weekly-review-overlay" id="weekly-review-overlay">
+    <div class="wr-header">
+        <div class="wr-title">Weekly Review 📋</div>
+        <button class="wr-skip-btn" onclick="skipWeeklyReview()">Skip</button>
+    </div>
+    <div class="wr-sub">How did your week go? A moment of reflection makes next week stronger.</div>
+
+    <div class="wr-section-label">This week's habits</div>
+    <div id="wr-habit-list"></div>
+
+    <div class="wr-question">What worked this week? What was hard?</div>
+    <textarea class="wr-textarea" id="wr-note" placeholder="Write a short note... (optional)"></textarea>
+
+    <button class="wr-save-btn" onclick="saveWeeklyReview()">Save Reflection</button>
 </div>
 
 <!-- ══════════════════ SCREEN: ONBOARDING ══════════════════ -->
@@ -314,6 +376,14 @@
         <span style="font-size:1.1rem">+</span> Add New Habit
     </button>
 
+    <div class="reminder-permission-banner" id="home-reminder-permission-banner" style="margin-top:0.75rem;">
+        <div class="reminder-permission-banner-text">
+            <strong>Enable reminders</strong>
+            Never miss a habit — allow daily notifications.
+        </div>
+        <button class="btn-allow-notifs" onclick="requestNotificationPermission()">Allow</button>
+    </div>
+
     <div class="daily-quote" id="daily-quote"></div>
 
     <nav class="bottom-nav">
@@ -325,8 +395,8 @@
 <!-- ══════════════════ SCREEN: ADD HABIT ══════════════════ -->
 <div class="screen" id="screen-add">
     <div class="add-header">
-        <button class="back-btn" onclick="showScreen('screen-home')">←</button>
-        <h2>New Habit</h2>
+        <button class="back-btn" id="add-back-btn" onclick="showScreen('screen-home')">←</button>
+        <h2 id="add-screen-title">New Habit</h2>
     </div>
     <div class="add-body">
         <div class="law-steps">
@@ -541,6 +611,7 @@
     <div class="detail-header">
         <button class="back-btn" onclick="showScreen('screen-home')">←</button>
         <h2 id="detail-title">Habit</h2>
+        <button class="detail-edit-btn" onclick="showEditHabit(currentDetailHabitId)" title="Edit habit" style="background:none;border:none;color:#a78bfa;font-size:0.85rem;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;">Edit</button>
         <button class="detail-delete-btn" onclick="deleteHabitFromDetail()" title="Delete habit">🗑</button>
     </div>
     <div class="detail-body">
@@ -565,6 +636,30 @@
         </div>
 
         <div class="insight-card" id="detail-insight"></div>
+
+        <div class="setup-card" id="detail-setup" style="display:none;">
+            <div class="setup-card-title">Your Setup</div>
+            <div id="detail-setup-fields"></div>
+        </div>
+
+        <div class="reminder-permission-banner" id="reminder-permission-banner">
+            <div class="reminder-permission-banner-text">
+                <strong>Enable notifications</strong>
+                Allow AtomicMe to send reminders so you never miss a habit.
+            </div>
+            <button class="btn-allow-notifs" onclick="requestNotificationPermission()">Allow</button>
+        </div>
+
+        <div class="reminder-card" id="detail-reminder-card">
+            <div class="reminder-card-info">
+                <div class="reminder-card-title">Daily Reminder</div>
+                <div class="reminder-card-sub" id="detail-reminder-sub">Remind me at <span id="detail-reminder-time"></span></div>
+            </div>
+            <label class="reminder-toggle">
+                <input type="checkbox" id="detail-reminder-toggle" onchange="handleReminderToggle(this.checked)">
+                <span class="reminder-toggle-track"></span>
+            </label>
+        </div>
 
         <div class="detail-action-row">
             <button class="btn-complete" id="detail-complete-btn" onclick="toggleHabitFromDetail()">
@@ -622,6 +717,7 @@ let state = {
 };
 
 let currentDetailHabitId = null;
+let editingHabitId = null;
 let currentStep = 0;
 let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium' };
 let selectedIdentity = null;
@@ -675,6 +771,7 @@ async function init() {
             saveLocal();
             showScreen('screen-home');
             renderHome();
+            maybeShowWeeklyReview();
         } else if (!state.user) {
             showScreen('screen-onboarding');
         }
@@ -692,9 +789,9 @@ function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-left'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
-    if (id === 'screen-home')  { renderHome(); }
+    if (id === 'screen-home')  { editingHabitId = null; renderHome(); }
     if (id === 'screen-stats') { renderStats(); }
-    if (id === 'screen-add')   { resetAddForm(); }
+    if (id === 'screen-add' && !editingHabitId) { resetAddForm(); }
 }
 
 function showTab(id, navEl) {
@@ -726,6 +823,7 @@ async function finishOnboarding() {
     showToast(`Welcome, ${name}! You are becoming ${identity.label} 🚀`, 'purple');
     showScreen('screen-home');
     renderHome();
+    maybeRequestNotificationPermissionAfterOnboarding();
     try {
         await api('POST', '/api/setup', { name, identity: selectedIdentity, identityLabel: identity.label, identityIcon: identity.icon });
     } catch(e) { /* non-critical */ }
@@ -778,12 +876,20 @@ function renderHome() {
         empty.style.display = 'block';
     } else {
         empty.style.display = 'none';
+        const yesterdayKey = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const completedYesterdayIds = (state.completions[yesterdayKey] || []).map(String);
+
         list.innerHTML = activeHabits.map(h => {
-            const isDone   = completedTodayIds.includes(String(h.id));
-            const streak   = state.streaks[h.id] || 0;
-            const isAtRisk = streak >= 3 && !isDone;
+            const isDone      = completedTodayIds.includes(String(h.id));
+            const streak      = state.streaks[h.id] || 0;
+            const isAtRisk    = streak >= 3 && !isDone;
+            const isGraceDay  = streak > 0 && !isDone && !completedYesterdayIds.includes(String(h.id));
+            const streakClass = isGraceDay ? 'grace-day-text' : (isAtRisk ? 'at-risk-text' : '');
+            const streakSuffix = isGraceDay
+                ? ' · grace day active'
+                : (isAtRisk ? ' · ⚠️ at risk!' : '');
             const streakHtml = streak > 0
-                ? `<div class="habit-streak">${getStreakEmoji(streak)} ${streak} day streak${isAtRisk ? ' · ⚠️ at risk!' : ''}</div>`
+                ? `<div class="habit-streak ${streakClass}">${getStreakEmoji(streak)} ${streak} day streak${streakSuffix}</div>`
                 : '';
             return `
             <div class="habit-item ${isDone ? 'completed' : ''} ${isAtRisk ? 'at-risk' : ''}" id="item-${h.id}">
@@ -912,9 +1018,32 @@ function showHabitDetail(id) {
     renderDetailHeatmap(id);
     document.getElementById('detail-insight').innerHTML = getInsightMessage(streak, habit.name);
 
+    const setupFields = [
+        { label: 'Your Why',          value: habit.why },
+        { label: '2-Minute Version',  value: habit.twoMin },
+        { label: 'Habit Stack',       value: habit.stack },
+        { label: 'Temptation Bundle', value: habit.bundle },
+        { label: 'Your Reward',       value: habit.reward },
+    ].filter(f => f.value && f.value.trim() !== '');
+
+    const setupCard = document.getElementById('detail-setup');
+    if (setupFields.length > 0) {
+        document.getElementById('detail-setup-fields').innerHTML = setupFields.map(f =>
+            `<div class="setup-field">
+                <div class="setup-field-label">${f.label}</div>
+                <div class="setup-field-value">${f.value}</div>
+            </div>`
+        ).join('');
+        setupCard.style.display = '';
+    } else {
+        setupCard.style.display = 'none';
+    }
+
     const btn = document.getElementById('detail-complete-btn');
     if (todayDone) { btn.textContent = '✓ Completed Today!'; btn.classList.add('is-done'); }
     else           { btn.textContent = '✓ Complete for Today'; btn.classList.remove('is-done'); }
+
+    renderDetailReminder(id);
 
     showScreen('screen-habit-detail');
 }
@@ -988,9 +1117,76 @@ function deleteHabitFromDetail() {
     });
     delete state.streaks[deletedId];
     delete state.bestStreaks[deletedId];
+    // Cancel any scheduled reminder for the deleted habit
+    const reminders = loadReminders();
+    if (reminders[deletedId]) {
+        delete reminders[deletedId];
+        saveReminders(reminders);
+        cancelLocalNotification(deletedId);
+    }
     saveLocal();
     api('DELETE', `/api/habits/${deletedId}`).catch(() => {});
     showScreen('screen-home');
+}
+
+function showEditHabit(id) {
+    if (!id) { return; }
+    const habit = state.habits.find(h => String(h.id) === String(id));
+    if (!habit) { return; }
+
+    editingHabitId = id;
+
+    // Populate the form fields from the habit in state
+    resetAddForm();
+
+    document.getElementById('new-name').value      = habit.name  || '';
+    document.getElementById('new-why').value       = habit.why   || '';
+    document.getElementById('new-bundle').value    = habit.bundle || '';
+    document.getElementById('new-two-min').value   = habit.twoMin || '';
+    document.getElementById('new-stack').value     = habit.stack || '';
+    document.getElementById('new-duration').value  = habit.duration || '';
+    document.getElementById('new-reward').value    = habit.reward || '';
+
+    // Select the correct emoji
+    const emojiBtn = document.querySelector(`.emoji-btn[data-emoji="${habit.emoji}"]`);
+    if (emojiBtn) {
+        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+        emojiBtn.classList.add('selected');
+    }
+    newHabit.emoji = habit.emoji;
+
+    // Select the correct color
+    const colorBtn = document.querySelector(`.color-btn[data-color="${habit.color}"]`);
+    if (colorBtn) {
+        document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('selected'));
+        colorBtn.classList.add('selected');
+    }
+    newHabit.color = habit.color;
+
+    // Select the correct time
+    const timeBtn = document.querySelector(`#time-grid .time-btn[data-time="${habit.time}"]`);
+    if (timeBtn) {
+        document.querySelectorAll('#time-grid .time-btn').forEach(b => b.classList.remove('selected'));
+        timeBtn.classList.add('selected');
+    }
+    newHabit.time = habit.time || 'morning';
+
+    // Select the correct difficulty
+    const diffBtn = document.querySelector(`#diff-grid .time-btn[data-diff="${habit.diff}"]`);
+    if (diffBtn) {
+        document.querySelectorAll('#diff-grid .time-btn').forEach(b => b.classList.remove('selected'));
+        diffBtn.classList.add('selected');
+    }
+    newHabit.diff = habit.diff || 'medium';
+
+    // Update screen chrome for edit mode
+    document.getElementById('add-screen-title').textContent = 'Edit Habit';
+    document.getElementById('save-habit-btn').textContent   = '✓ Save Changes';
+    document.getElementById('add-back-btn').onclick = () => showHabitDetail(id);
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-left'));
+    document.getElementById('screen-add').classList.add('active');
+    window.scrollTo(0, 0);
 }
 
 // ══════════════════════════════════════════
@@ -1008,6 +1204,9 @@ function resetAddForm() {
     document.querySelectorAll('#color-grid .color-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
     document.querySelectorAll('#diff-grid .time-btn').forEach((b, i) => b.classList.toggle('selected', i === 1));
     document.getElementById('save-habit-btn').disabled = false;
+    document.getElementById('save-habit-btn').textContent   = '✓ Create Habit';
+    document.getElementById('add-screen-title').textContent = 'New Habit';
+    document.getElementById('add-back-btn').onclick = () => showScreen('screen-home');
 }
 
 function goStep(n) {
@@ -1066,7 +1265,30 @@ async function saveHabit() {
         diff:     newHabit.diff,
     };
 
-    // Optimistic add with temp ID
+    if (editingHabitId) {
+        // Edit mode — optimistic update in place, no ID change, no touching streaks/completions
+        const editId = editingHabitId;
+        editingHabitId = null;
+        const idx = state.habits.findIndex(h => String(h.id) === String(editId));
+        if (idx !== -1) {
+            state.habits[idx] = { ...state.habits[idx], ...habitData };
+        }
+        saveLocal();
+        showToast(`${habitData.emoji} "${habitData.name}" updated!`);
+        showHabitDetail(editId);
+
+        // Persist to backend
+        try {
+            const result = await api('PUT', `/api/habits/${editId}`, habitData);
+            const i = state.habits.findIndex(h => String(h.id) === String(editId));
+            if (i !== -1) { state.habits[i] = result; }
+            saveLocal();
+            showHabitDetail(editId);
+        } catch(e) { /* keep optimistic */ }
+        return;
+    }
+
+    // Create mode — optimistic add with temp ID
     const tempId    = 'tmp_' + Date.now();
     const tempHabit = { ...habitData, id: tempId, createdAt: today() };
     state.habits.push(tempHabit);
@@ -1212,6 +1434,309 @@ function showToast(msg, type = '') {
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════
+
+// reminder state: { [habitId]: boolean } — stored in localStorage
+function loadReminders() {
+    try { return JSON.parse(localStorage.getItem('atomicme_reminders') || '{}'); } catch(e) { return {}; }
+}
+function saveReminders(reminders) {
+    try { localStorage.setItem('atomicme_reminders', JSON.stringify(reminders)); } catch(e) {}
+}
+
+function notificationPermission() {
+    if (typeof Notification === 'undefined') { return 'unsupported'; }
+    return Notification.permission;
+}
+
+async function requestNotificationPermission() {
+    if (typeof Notification === 'undefined') { return false; }
+    try {
+        const result = await Notification.requestPermission();
+        // Hide both banners
+        document.getElementById('home-reminder-permission-banner').classList.remove('show');
+        const detailBanner = document.getElementById('reminder-permission-banner');
+        if (detailBanner) { detailBanner.classList.remove('show'); }
+        if (result === 'granted') {
+            showToast('Notifications enabled! Reminders are active.', 'purple');
+            // Re-schedule all enabled reminders now that we have permission
+            const reminders = loadReminders();
+            state.habits.forEach(h => {
+                if (reminders[h.id]) {
+                    scheduleLocalNotification(h);
+                }
+            });
+            return true;
+        } else {
+            showToast('Notification permission denied. Reminders will not fire.');
+            return false;
+        }
+    } catch(e) {
+        return false;
+    }
+}
+
+// Also try the NativePHP bridge for native scheduling (fails silently in browser).
+async function bridgeScheduleNotification(habit) {
+    try {
+        const timeLabel = getTimeLabel(habit.time);
+        await fetch('/_native/api/call', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+            },
+            body: JSON.stringify({
+                method: 'LocalNotification.Schedule',
+                params: {
+                    id: 'habit_' + habit.id,
+                    title: habit.emoji + ' ' + habit.name,
+                    body: 'Time for your ' + timeLabel.toLowerCase() + ' habit. Keep the streak alive!',
+                    repeating: true,
+                    time: getNotificationTime(habit.time),
+                },
+            }),
+        });
+    } catch(e) { /* native API not available in browser — silently ignore */ }
+}
+
+async function bridgeCancelNotification(habitId) {
+    try {
+        await fetch('/_native/api/call', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '',
+            },
+            body: JSON.stringify({
+                method: 'LocalNotification.Cancel',
+                params: { id: 'habit_' + habitId },
+            }),
+        });
+    } catch(e) { /* silently ignore */ }
+}
+
+function getTimeLabel(time) {
+    const labels = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', anytime: 'Daily' };
+    return labels[time] || 'Daily';
+}
+
+// Returns a HH:MM string for the preferred time of day (used for display + native scheduling).
+function getNotificationTime(time) {
+    const times = { morning: '08:00', afternoon: '13:00', evening: '19:00', anytime: '09:00' };
+    return times[time] || '09:00';
+}
+
+function scheduleLocalNotification(habit) {
+    // Web Notifications API — shows immediately as a demonstration and schedules native if available.
+    // In a real device context, the native bridge takes over repeating scheduling.
+    bridgeScheduleNotification(habit);
+
+    if (notificationPermission() === 'granted') {
+        try {
+            new Notification(habit.emoji + ' ' + habit.name, {
+                body: 'Time for your ' + getTimeLabel(habit.time).toLowerCase() + ' habit. Keep the streak alive!',
+                tag: 'habit_' + habit.id,
+                silent: false,
+            });
+        } catch(e) { /* silently ignore */ }
+    }
+}
+
+function cancelLocalNotification(habitId) {
+    bridgeCancelNotification(habitId);
+}
+
+async function handleReminderToggle(enabled) {
+    const id = currentDetailHabitId;
+    if (!id) { return; }
+
+    const habit = state.habits.find(h => String(h.id) === String(id));
+    if (!habit) { return; }
+
+    // If enabling, check / request permission first
+    if (enabled) {
+        const perm = notificationPermission();
+        if (perm === 'unsupported') {
+            showToast('Notifications are not supported on this device.');
+            document.getElementById('detail-reminder-toggle').checked = false;
+            return;
+        }
+        if (perm === 'denied') {
+            showToast('Notification permission was denied. Please enable in device settings.');
+            document.getElementById('detail-reminder-toggle').checked = false;
+            return;
+        }
+        if (perm !== 'granted') {
+            const granted = await requestNotificationPermission();
+            if (!granted) {
+                document.getElementById('detail-reminder-toggle').checked = false;
+                return;
+            }
+        }
+        // Schedule
+        const reminders = loadReminders();
+        reminders[id] = true;
+        saveReminders(reminders);
+        scheduleLocalNotification(habit);
+        showToast(`🔔 Reminder set for ${getNotificationTime(habit.time)} (${getTimeLabel(habit.time)})`, 'purple');
+    } else {
+        // Cancel
+        const reminders = loadReminders();
+        delete reminders[id];
+        saveReminders(reminders);
+        cancelLocalNotification(id);
+        showToast('Reminder cancelled.');
+    }
+
+    renderDetailReminder(id);
+}
+
+function renderDetailReminder(id) {
+    const habit = state.habits.find(h => String(h.id) === String(id));
+    if (!habit) { return; }
+
+    const reminders = loadReminders();
+    const isEnabled = !!reminders[id];
+    const toggle = document.getElementById('detail-reminder-toggle');
+    if (toggle) { toggle.checked = isEnabled; }
+
+    const timeSub = document.getElementById('detail-reminder-time');
+    if (timeSub) {
+        timeSub.textContent = getNotificationTime(habit.time) + ' (' + getTimeLabel(habit.time) + ')';
+    }
+
+    // Show the in-detail permission banner if permission not yet determined
+    const perm = notificationPermission();
+    const detailBanner = document.getElementById('reminder-permission-banner');
+    if (detailBanner) {
+        const shouldShow = perm !== 'granted' && perm !== 'denied' && perm !== 'unsupported';
+        detailBanner.classList.toggle('show', shouldShow);
+    }
+}
+
+// Request permission after onboarding (best-effort, no-op if not supported).
+function maybeRequestNotificationPermissionAfterOnboarding() {
+    if (notificationPermission() === 'default') {
+        // Delay slightly so the user sees the home screen first
+        setTimeout(() => {
+            const banner = document.getElementById('home-reminder-permission-banner');
+            if (banner) { banner.classList.add('show'); }
+        }, 1500);
+    }
+}
+
+// ══════════════════════════════════════════
+//  WEEKLY REVIEW
+// ══════════════════════════════════════════
+
+// Returns the ISO date string for the most recent Monday (start of current week).
+function currentWeekOf() {
+    const d = new Date();
+    const day = d.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const diff = (day === 0) ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().slice(0, 10);
+}
+
+function loadLastReviewedWeek() {
+    try { return localStorage.getItem('atomicme_last_reviewed_week') || null; } catch(e) { return null; }
+}
+
+function saveLastReviewedWeek(weekOf) {
+    try { localStorage.setItem('atomicme_last_reviewed_week', weekOf); } catch(e) {}
+}
+
+// Returns true if the weekly review overlay should appear.
+function shouldShowWeeklyReview() {
+    if (!state.user || state.habits.length === 0) { return false; }
+
+    const thisWeek = currentWeekOf();
+    const lastReviewed = loadLastReviewedWeek();
+
+    // Already reviewed or skipped this week — do not show again.
+    if (lastReviewed === thisWeek) { return false; }
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday
+
+    // Show on Sunday (day 0) or if it has been 7+ days since last review.
+    if (dayOfWeek === 0) { return true; }
+
+    if (lastReviewed) {
+        const lastDate = new Date(lastReviewed);
+        const daysSince = Math.floor((now - lastDate) / 86400000);
+        if (daysSince >= 7) { return true; }
+    }
+
+    return false;
+}
+
+function maybeShowWeeklyReview() {
+    if (!shouldShowWeeklyReview()) { return; }
+    // Delay so it appears after home renders.
+    setTimeout(openWeeklyReview, 1200);
+}
+
+function openWeeklyReview() {
+    if (!state.user) { return; }
+
+    // Build the weekly habit completion summary.
+    const weekOf = currentWeekOf();
+    const weekStart = new Date(weekOf);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + i);
+        days.push(d.toISOString().slice(0, 10));
+    }
+
+    const listEl = document.getElementById('wr-habit-list');
+    listEl.innerHTML = '';
+
+    state.habits.forEach(habit => {
+        const doneCount = days.filter(d => (state.completions[d] || []).some(id => String(id) === String(habit.id))).length;
+        const pct = Math.round((doneCount / 7) * 100);
+        const pctClass = pct >= 71 ? 'good' : pct >= 43 ? 'ok' : 'low';
+        const row = document.createElement('div');
+        row.className = 'wr-habit-row';
+        row.innerHTML = `
+            <div class="wr-habit-left"><span>${habit.emoji}</span><span>${habit.name}</span></div>
+            <div class="wr-habit-pct ${pctClass}">${doneCount}/7 days</div>
+        `;
+        listEl.appendChild(row);
+    });
+
+    document.getElementById('wr-note').value = '';
+    document.getElementById('weekly-review-overlay').classList.add('show');
+}
+
+function closeWeeklyReview() {
+    document.getElementById('weekly-review-overlay').classList.remove('show');
+}
+
+function skipWeeklyReview() {
+    saveLastReviewedWeek(currentWeekOf());
+    closeWeeklyReview();
+    showToast('Review skipped. See you next week!');
+}
+
+async function saveWeeklyReview() {
+    const note = document.getElementById('wr-note').value.trim();
+    const weekOf = currentWeekOf();
+
+    // Optimistic dismiss.
+    saveLastReviewedWeek(weekOf);
+    closeWeeklyReview();
+    showToast('Reflection saved!', 'purple');
+
+    try {
+        await api('POST', '/api/reflections', { week_of: weekOf, note });
+    } catch(e) { /* non-critical — local state already updated */ }
 }
 </script>
 </body>

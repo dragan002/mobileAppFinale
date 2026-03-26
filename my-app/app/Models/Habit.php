@@ -29,12 +29,18 @@ class Habit extends Model
 
         $streak = 0;
         $expected = Carbon::today();
+        $graceUsed = false;
 
         foreach ($completions as $date) {
             if ($date === $expected->format('Y-m-d')) {
                 $streak++;
                 $expected->subDay();
-            } elseif ($date < $expected->format('Y-m-d')) {
+            } elseif (! $graceUsed && $date === $expected->subDay()->format('Y-m-d')) {
+                // One missed day — apply the grace day and count this completion
+                $graceUsed = true;
+                $streak++;
+                $expected->subDay();
+            } else {
                 break;
             }
         }
@@ -56,18 +62,29 @@ class Habit extends Model
 
         $best = 1;
         $current = 1;
+        $graceUsed = false;
 
         for ($i = 1; $i < count($completions); $i++) {
             $prev = Carbon::parse($completions[$i - 1]);
             $curr = Carbon::parse($completions[$i]);
+            $gap = (int) $prev->diffInDays($curr);
 
-            if ($prev->addDay()->format('Y-m-d') === $curr->format('Y-m-d')) {
+            if ($gap === 1) {
+                // Consecutive day — continue streak, reset grace availability
+                $graceUsed = false;
                 $current++;
-                if ($current > $best) {
-                    $best = $current;
-                }
+            } elseif ($gap === 2 && ! $graceUsed) {
+                // Exactly one missed day — apply grace and continue
+                $graceUsed = true;
+                $current++;
             } else {
+                // Two or more consecutive missing days — reset
                 $current = 1;
+                $graceUsed = false;
+            }
+
+            if ($current > $best) {
+                $best = $current;
             }
         }
 
@@ -77,18 +94,18 @@ class Habit extends Model
     public function toApiArray(): array
     {
         return [
-            'id'        => $this->id,
-            'name'      => $this->name,
-            'emoji'     => $this->emoji,
-            'color'     => $this->color,
-            'time'      => $this->time_of_day,
-            'why'       => $this->why ?? '',
-            'bundle'    => $this->bundle ?? '',
-            'twoMin'    => $this->two_min_version ?? '',
-            'stack'     => $this->stack ?? '',
-            'duration'  => $this->duration ?? '',
-            'reward'    => $this->reward ?? '',
-            'diff'      => $this->difficulty,
+            'id' => $this->id,
+            'name' => $this->name,
+            'emoji' => $this->emoji,
+            'color' => $this->color,
+            'time' => $this->time_of_day,
+            'why' => $this->why ?? '',
+            'bundle' => $this->bundle ?? '',
+            'twoMin' => $this->two_min_version ?? '',
+            'stack' => $this->stack ?? '',
+            'duration' => $this->duration ?? '',
+            'reward' => $this->reward ?? '',
+            'diff' => $this->difficulty,
             'createdAt' => $this->created_at->format('Y-m-d'),
         ];
     }
