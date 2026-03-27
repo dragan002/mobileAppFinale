@@ -211,6 +211,8 @@ If the build asks "Select an emulator to launch" instead of installing on your p
 | `adb` not recognized in terminal | Add `C:\Users\<you>\AppData\Local\Android\Sdk\platform-tools` to PATH |
 | `adb devices` shows empty list | Switch USB mode to File Transfer, or use Wireless ADB instead |
 | Xiaomi phone not detected via USB | Xiaomi USB detection is unreliable on Windows — use Wireless ADB |
+| `adb connect` fails but `adb devices` shows device | Connection is already active (via mDNS). This is normal — proceed with build. |
+| `libphp.a not found` during Gradle build | NativePHP places static libs at `nativephp/android/app/src/main/cpp/staticLibs/arm64-v8a/` but CMakeLists.txt expects `nativephp/android/app/src/main/staticLibs/arm64-v8a/`. Copy all `.a` files from `cpp/staticLibs/` up to `main/staticLibs/` (one level up). |
 | composer install timeout during build | Increase timeout in `PreparesBuild.php` from 300 to 900 |
 | `sdk.dir` empty in local.properties | Set it manually after first build attempt (see Step 4 above) |
 | Build asks to select emulator instead of phone | Phone not visible to adb — run `adb connect <IP:PORT>` first |
@@ -234,7 +236,8 @@ If the build asks "Select an emulator to launch" instead of installing on your p
 
 **Real Android install:**
 - [ ] `adb connect <IP:PORT>` (Wireless ADB) or USB cable connected
-- [ ] `adb devices` shows your phone
+- [ ] `adb devices` shows your phone (may show mDNS name, not IP:PORT — this is OK)
 - [ ] `vendor/nativephp/mobile/src/Traits/PreparesBuild.php` timeout set to 900
 - [ ] `nativephp/android/local.properties` has correct `sdk.dir`
+- [ ] **Before build:** Copy PHP static libs from `nativephp/android/app/src/main/cpp/staticLibs/arm64-v8a/*.a` to `nativephp/android/app/src/main/staticLibs/arm64-v8a/` (if they exist in cpp/)
 - [ ] `php artisan native:run android`
