@@ -222,6 +222,10 @@
         .time-btn .t-label { font-size: 0.78rem; font-weight: 600; }
         .time-btn .t-sub { font-size: 0.65rem; color: #8B92AB; margin-top: 0.1rem; }
 
+        .category-picker { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .category-pill { background: #1A1F35; border: 2px solid #2A3152; border-radius: 0.75rem; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all .15s; color: #EAEDF6; }
+        .category-pill.selected { border-color: #A855F7; background: #1f1535; color: #A855F7; }
+
         .reward-input-wrap { position: relative; }
         .reward-input-wrap .reward-emoji { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); font-size: 1.1rem; }
         .reward-input-wrap .form-input { padding-left: 2.75rem; }
@@ -627,6 +631,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
         <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
     </nav>
 </div>
 
@@ -690,6 +695,11 @@
                     <div class="color-btn" data-color="#1a3a3a" style="background:#14b8a6" onclick="selectColor(this)"></div>
                     <div class="color-btn" data-color="#3a1a3a" style="background:#ec4899" onclick="selectColor(this)"></div>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category <span style="color:#5A6180;font-weight:400">(optional)</span></label>
+                <div class="category-picker" id="category-picker"></div>
             </div>
 
             <div class="nav-row">
@@ -841,6 +851,60 @@
     <nav class="bottom-nav">
         <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
         <div class="nav-item active" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+    </nav>
+</div>
+
+<!-- ══════════════════ SCREEN: GROWTH ══════════════════ -->
+<div class="screen" id="screen-growth">
+    <div class="app-header">
+        <div class="header-greeting">
+            <h2>Compound Growth</h2>
+            <p>Your 1% advantage over time.</p>
+        </div>
+        <div class="avatar" id="growth-avatar">?</div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-card">
+            <h3>Consistency Score</h3>
+            <div class="stats-row" style="margin-bottom:0">
+                <div class="stat-box"><div class="val" id="cs-daily">0%</div><div class="lbl">Today</div></div>
+                <div class="stat-box"><div class="val" id="cs-weekly">0%</div><div class="lbl">This Week</div></div>
+                <div class="stat-box"><div class="val" id="cs-monthly">0%</div><div class="lbl">This Month</div></div>
+                <div class="stat-box"><div class="val" id="cs-alltime">0%</div><div class="lbl">All-Time</div></div>
+            </div>
+        </div>
+
+        <div class="stats-card">
+            <h3>Compound Growth Projection</h3>
+            <div id="growth-projection-headline" style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; line-height:1.4;"></div>
+            <div class="compound-chart" id="growth-projection-chart"></div>
+            <div class="chart-labels"><span>Now</span><span>90d</span><span>180d</span><span>270d</span><span>365d</span></div>
+        </div>
+
+        <div class="stats-card">
+            <h3>Week vs. Week</h3>
+            <div class="compound-chart" id="growth-weekly-chart" style="height:80px; align-items:flex-end; gap:6px;"></div>
+            <div class="chart-labels" id="growth-weekly-labels"></div>
+        </div>
+
+        <div class="stats-card">
+            <h3>Month vs. Month</h3>
+            <div class="compound-chart" id="growth-monthly-chart" style="height:80px; align-items:flex-end; gap:3px;"></div>
+            <div class="chart-labels" id="growth-monthly-labels"></div>
+        </div>
+
+        <div class="stats-card">
+            <h3>Habit Consistency</h3>
+            <div id="growth-habits-list"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
+        <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+        <div class="nav-item active" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
     </nav>
 </div>
 
@@ -891,7 +955,9 @@
         <div class="reminder-card" id="detail-reminder-card">
             <div class="reminder-card-info">
                 <div class="reminder-card-title">Daily Reminder</div>
-                <div class="reminder-card-sub" id="detail-reminder-sub">Remind me at <span id="detail-reminder-time"></span></div>
+                <div class="reminder-card-sub">
+                    Remind me at <input type="time" id="detail-reminder-time" style="width:80px;background:#1A1F35;border:1px solid #2A3152;border-radius:0.4rem;color:#EAEDF6;padding:0.25rem 0.5rem;font-family:inherit;font-size:0.85rem;" onchange="handleReminderTimeChange(this.value)">
+                </div>
             </div>
             <label class="reminder-toggle">
                 <input type="checkbox" id="detail-reminder-toggle" onchange="handleReminderToggle(this.checked)">
@@ -952,13 +1018,15 @@ let state = {
     completions: {},  // { 'YYYY-MM-DD': [habitId, ...] }
     streaks: {},      // { habitId: n }
     bestStreaks: {},   // { habitId: n }
+    categories: [],    // array of category objects from server
 };
 
 let currentDetailHabitId = null;
 let editingHabitId = null;
 let currentStep = 0;
-let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium' };
+let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '' };
 let selectedIdentity = null;
+let activeCategoryFilter = null; // null = show all categories
 
 function today() { return new Date().toISOString().slice(0, 10); }
 
@@ -1006,6 +1074,7 @@ async function init() {
             state.completions = data.completions;
             state.streaks     = data.streaks;
             state.bestStreaks  = data.bestStreaks;
+            state.categories  = data.categories || [];
             saveLocal();
             showScreen('screen-home');
             renderHome();
@@ -1021,6 +1090,23 @@ async function init() {
 init();
 
 // ══════════════════════════════════════════
+//  CATEGORY HELPERS
+// ══════════════════════════════════════════
+function getCategoryById(id) {
+    return state.categories.find(c => c.id === id) || null;
+}
+
+function getCategoryColor(categoryId) {
+    const cat = getCategoryById(categoryId);
+    return cat ? cat.color : '#5A6180';
+}
+
+function renderCategoryBadge(categoryId) {
+    const cat = getCategoryById(categoryId);
+    return cat ? `<span class="category-badge" style="background:${cat.color}22; border:1px solid ${cat.color}55; color:${cat.color};">${cat.name}</span>` : '';
+}
+
+// ══════════════════════════════════════════
 //  SCREEN NAVIGATION
 // ══════════════════════════════════════════
 function showScreen(id) {
@@ -1029,13 +1115,17 @@ function showScreen(id) {
     window.scrollTo(0, 0);
     if (id === 'screen-home')  { editingHabitId = null; renderHome(); }
     if (id === 'screen-stats') { renderStats(); }
+    if (id === 'screen-growth') { renderGrowth(); }
     if (id === 'screen-add' && !editingHabitId) { resetAddForm(); }
 }
 
 function showTab(id, navEl) {
     showScreen(id);
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-    navEl.classList.add('active');
+    // Only update the nav within the now-active screen
+    const activeScreen = document.getElementById(id);
+    activeScreen.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+    const activeNav = activeScreen.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`);
+    if (activeNav) { activeNav.classList.add('active'); }
 }
 
 // ══════════════════════════════════════════
@@ -1445,6 +1535,8 @@ function showEditHabit(id) {
         diffBtn.classList.add('selected');
     }
     newHabit.diff = habit.diff || 'medium';
+    newHabit.categoryId = habit.categoryId || null;
+    newHabit.reminderTime = habit.reminderTime || '';
 
     // Update screen chrome for edit mode
     document.getElementById('add-screen-title').textContent = 'Edit Habit';
@@ -1460,7 +1552,7 @@ function showEditHabit(id) {
 //  ADD HABIT FORM
 // ══════════════════════════════════════════
 function resetAddForm() {
-    newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium' };
+    newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '' };
     goStep(0);
     ['new-name','new-why','new-bundle','new-two-min','new-stack','new-duration','new-reward'].forEach(id => {
         const el = document.getElementById(id);
@@ -1474,6 +1566,7 @@ function resetAddForm() {
     document.getElementById('save-habit-btn').textContent   = '✓ Create Habit';
     document.getElementById('add-screen-title').textContent = 'New Habit';
     document.getElementById('add-back-btn').onclick = () => showScreen('screen-home');
+    renderCategoryPicker();
 }
 
 function goStep(n) {
@@ -1512,6 +1605,27 @@ function selectDiff(el) {
     newHabit.diff = el.dataset.diff;
 }
 
+function renderCategoryPicker() {
+    const picker = document.getElementById('category-picker');
+    if (!picker) { return; }
+    picker.innerHTML = `
+        <div class="category-pill selected" data-id="" onclick="selectCategory(this, null)">None</div>
+        ${state.categories.map(cat => `
+            <div class="category-pill ${newHabit.categoryId === cat.id ? 'selected' : ''}"
+                 data-id="${cat.id}"
+                 style="border-color: ${cat.color}; color: ${cat.color};"
+                 onclick="selectCategory(this, ${cat.id})">${cat.name}</div>
+        `).join('')}
+    `;
+}
+
+function selectCategory(el, id) {
+    const picker = document.getElementById('category-picker');
+    picker.querySelectorAll('.category-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    newHabit.categoryId = id;
+}
+
 async function saveHabit() {
     const name = document.getElementById('new-name').value.trim();
     if (!name) { showToast('Please enter a habit name first', 'purple'); goStep(0); return; }
@@ -1530,6 +1644,8 @@ async function saveHabit() {
         duration: document.getElementById('new-duration').value.trim(),
         reward:   document.getElementById('new-reward').value.trim(),
         diff:     newHabit.diff,
+        categoryId: newHabit.categoryId,
+        reminderTime: newHabit.reminderTime,
     };
 
     if (editingHabitId) {
@@ -1659,6 +1775,133 @@ function renderStats() {
             <div class="identity-bar"><div class="identity-bar-fill" style="width:${Math.min(100, voteCount)}%"></div></div>
         </div>
     </div>`;
+}
+
+// ══════════════════════════════════════════
+//  GROWTH SCREEN
+// ══════════════════════════════════════════
+async function renderGrowth() {
+    if (!state.user) { return; }
+
+    const u = state.user;
+    document.getElementById('growth-avatar').textContent = u.name[0].toUpperCase();
+
+    // Consistency scores
+    const todayKey = today();
+    const completedTodayIds = (state.completions[todayKey] || []).map(String);
+    const total = state.habits.length;
+    const todayDone = completedTodayIds.filter(id => state.habits.some(h => String(h.id) === id)).length;
+    const csDaily = total ? Math.round((todayDone / total) * 100) : 0;
+
+    // Weekly consistency
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    let weekCompletions = 0;
+    let weekPossible = 0;
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + i);
+        const key = d.toISOString().slice(0, 10);
+        const done = (state.completions[key] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
+        weekCompletions += done;
+        weekPossible += total;
+    }
+    const csWeekly = weekPossible ? Math.round((weekCompletions / weekPossible) * 100) : 0;
+
+    // Monthly consistency
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    let monthCompletions = 0;
+    let monthPossible = 0;
+    const today_date = new Date();
+    for (let i = 0; i < today_date.getDate(); i++) {
+        const d = new Date(monthStart);
+        d.setDate(monthStart.getDate() + i);
+        const key = d.toISOString().slice(0, 10);
+        const done = (state.completions[key] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
+        monthCompletions += done;
+        monthPossible += total;
+    }
+    const csMonthly = monthPossible ? Math.round((monthCompletions / monthPossible) * 100) : 0;
+
+    // All-time consistency
+    let allTimeCompletions = 0;
+    let allTimePossible = 0;
+    Object.keys(state.completions).forEach(date => {
+        const done = (state.completions[date] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
+        allTimeCompletions += done;
+        allTimePossible += total;
+    });
+    const csAllTime = allTimePossible ? Math.round((allTimeCompletions / allTimePossible) * 100) : 0;
+
+    document.getElementById('cs-daily').textContent = csDaily + '%';
+    document.getElementById('cs-weekly').textContent = csWeekly + '%';
+    document.getElementById('cs-monthly').textContent = csMonthly + '%';
+    document.getElementById('cs-alltime').textContent = csAllTime + '%';
+
+    // Compound growth projection
+    const rate = csAllTime / 100;
+    const multiplier = Math.pow(rate, 365);
+    const headline = rate > 0 ? `At ${csAllTime}% consistency, you compound to <strong>${Math.round(multiplier * 100)}x</strong> better in 365 days` : 'Track some habits to see your compound growth potential!';
+    document.getElementById('growth-projection-headline').innerHTML = headline;
+
+    // Projection chart
+    const points = [0, 90, 180, 270, 365];
+    const projChart = document.getElementById('growth-projection-chart');
+    const maxVal = rate > 0 ? Math.pow(rate, 365) : 1;
+    projChart.innerHTML = points.map(day => {
+        const val = day === 0 ? 1 : Math.pow(rate, day);
+        const height = maxVal > 0 ? Math.max(4, (val / maxVal) * 100) : 4;
+        return `<div class="compound-bar" style="height:${height}%"></div>`;
+    }).join('');
+
+    // Fetch analytics from server
+    try {
+        const data = await api('GET', '/api/analytics');
+
+        // Weekly rates
+        const weeklyRates = data.weeklyRates || [];
+        const weeklyChart = document.getElementById('growth-weekly-chart');
+        const maxWeekly = Math.max(...weeklyRates, 1);
+        weeklyChart.innerHTML = weeklyRates.map((rate, i) => {
+            const height = maxWeekly > 0 ? Math.max(4, (rate / maxWeekly) * 100) : 4;
+            return `<div class="compound-bar" style="height:${height}%"></div>`;
+        }).join('');
+
+        const weekLabels = document.getElementById('growth-weekly-labels');
+        weekLabels.innerHTML = ['4w ago', '3w ago', '2w ago', 'Last w', 'This w'].map(l => `<span>${l}</span>`).join('');
+
+        // Monthly rates
+        const monthlyRates = data.monthlyRates || [];
+        const monthlyChart = document.getElementById('growth-monthly-chart');
+        const maxMonthly = Math.max(...monthlyRates, 1);
+        monthlyChart.innerHTML = monthlyRates.map((rate, i) => {
+            const height = maxMonthly > 0 ? Math.max(4, (rate / maxMonthly) * 100) : 4;
+            return `<div class="compound-bar" style="height:${height}%"></div>`;
+        }).join('');
+    } catch(e) {
+        // Fallback if analytics unavailable
+    }
+
+    // Per-habit consistency
+    const habitsList = document.getElementById('growth-habits-list');
+    if (state.habits.length > 0) {
+        habitsList.innerHTML = state.habits.map(h => {
+            const allCompletions = Object.values(state.completions).filter(arr => arr.includes(String(h.id))).length;
+            const daysSinceCreated = Math.max(1, new Date().toISOString().slice(0, 10).localeCompare(h.createdAt) + 1);
+            const habitRate = Math.round((allCompletions / daysSinceCreated) * 100);
+            return `<div class="identity-item">
+                <div class="identity-icon">${h.emoji}</div>
+                <div class="identity-info">
+                    <div class="identity-name">${h.name}</div>
+                    <div class="identity-votes">${habitRate}% consistency</div>
+                    <div class="identity-bar"><div class="identity-bar-fill" style="width:${habitRate}%"></div></div>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        habitsList.innerHTML = '<p style="color:#5A6180;font-size:.8rem;padding:.5rem 0;">Add habits to track consistency.</p>';
+    }
 }
 
 function calcOverallStreak() {
@@ -1819,9 +2062,15 @@ function getTimeLabel(time) {
 }
 
 // Returns a HH:MM string for the preferred time of day (used for display + native scheduling).
-function getNotificationTime(time) {
+function getNotificationTime(timeOrHabit) {
+    // Support both habit object and time string for backwards compatibility
+    if (typeof timeOrHabit === 'object' && timeOrHabit !== null) {
+        const habit = timeOrHabit;
+        if (habit.reminderTime) { return habit.reminderTime; }
+        return getNotificationTime(habit.time);
+    }
     const times = { morning: '08:00', afternoon: '13:00', evening: '19:00', anytime: '09:00' };
-    return times[time] || '09:00';
+    return times[timeOrHabit] || '09:00';
 }
 
 function scheduleLocalNotification(habit) {
@@ -1842,6 +2091,31 @@ function scheduleLocalNotification(habit) {
 
 function cancelLocalNotification(habitId) {
     bridgeCancelNotification(habitId);
+}
+
+async function handleReminderTimeChange(time) {
+    const id = currentDetailHabitId;
+    if (!id) { return; }
+
+    const habit = state.habits.find(h => String(h.id) === String(id));
+    if (!habit) { return; }
+
+    // Update the habit in state
+    habit.reminderTime = time;
+    saveLocal();
+
+    // Persist to backend
+    try {
+        await api('PUT', `/api/habits/${id}`, { ...habit, reminderTime: time });
+    } catch(e) { /* keep optimistic */ }
+
+    // Re-schedule notification if enabled
+    const reminders = loadReminders();
+    if (reminders[id]) {
+        cancelLocalNotification(id);
+        scheduleLocalNotification(habit);
+        showToast(`⏰ Reminder updated to ${time}`, 'purple');
+    }
 }
 
 async function handleReminderToggle(enabled) {
@@ -1898,9 +2172,9 @@ function renderDetailReminder(id) {
     const toggle = document.getElementById('detail-reminder-toggle');
     if (toggle) { toggle.checked = isEnabled; }
 
-    const timeSub = document.getElementById('detail-reminder-time');
-    if (timeSub) {
-        timeSub.textContent = getNotificationTime(habit.time) + ' (' + getTimeLabel(habit.time) + ')';
+    const timeInput = document.getElementById('detail-reminder-time');
+    if (timeInput) {
+        timeInput.value = getNotificationTime(habit) || '09:00';
     }
 
     // Show the in-detail permission banner if permission not yet determined

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Category;
 use App\Models\Habit;
 use App\Models\HabitCompletion;
 use App\Models\UserProfile;
@@ -26,8 +27,8 @@ function makeHabitForReset(): Habit
         'time_of_day'        => 'morning',
         'why'                => '',
         'two_min_version'    => '',
-        'habit_stack'        => '',
-        'temptation_bundle'  => '',
+        'stack'              => '',
+        'bundle'             => '',
         'reward'             => '',
         'difficulty'         => 'medium',
     ]);
@@ -64,8 +65,8 @@ describe('DELETE /api/reset', function () {
             'time_of_day'        => 'evening',
             'why'                => '',
             'two_min_version'    => '',
-            'habit_stack'        => '',
-            'temptation_bundle'  => '',
+            'stack'              => '',
+            'bundle'             => '',
             'reward'             => '',
             'difficulty'         => 'easy',
         ]);
@@ -79,5 +80,49 @@ describe('DELETE /api/reset', function () {
         $this->assertDatabaseCount('habits', 0);
         $this->assertDatabaseCount('habit_completions', 0);
         $this->assertDatabaseCount('user_profile', 0);
+    });
+
+    it('does not delete preset categories on reset', function () {
+        // Seed presets
+        $presets = [
+            ['name' => 'Morning Routine', 'color' => '#f97316', 'sort_order' => 1],
+            ['name' => 'Evening Routine', 'color' => '#7c3aed', 'sort_order' => 2],
+        ];
+
+        foreach ($presets as $preset) {
+            Category::create([
+                ...$preset,
+                'user_profile_id' => null,
+                'is_preset' => true,
+            ]);
+        }
+
+        makeProfileForReset();
+        makeHabitForReset();
+
+        $presetCount = Category::where('is_preset', true)->count();
+        expect($presetCount)->toBe(2);
+
+        $this->deleteJson('/api/reset')->assertOk();
+
+        // Presets should still exist
+        expect(Category::where('is_preset', true)->count())->toBe($presetCount);
+    });
+
+    it('deletes user created categories on reset', function () {
+        $profile = makeProfileForReset();
+
+        $userCategory = Category::create([
+            'user_profile_id' => $profile->id,
+            'name' => 'Custom',
+            'color' => '#ff0000',
+            'is_preset' => false,
+        ]);
+
+        expect(Category::where('is_preset', false)->count())->toBe(1);
+
+        $this->deleteJson('/api/reset')->assertOk();
+
+        expect(Category::where('is_preset', false)->count())->toBe(0);
     });
 });

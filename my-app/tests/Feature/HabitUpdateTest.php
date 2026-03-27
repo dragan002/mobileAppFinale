@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Category;
 use App\Models\Habit;
 use App\Models\HabitCompletion;
+use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -149,5 +151,66 @@ describe('PUT /api/habits/{habit}', function () {
                 'reward' => 'Nice breakfast',
                 'diff' => 'easy',
             ]);
+    });
+
+    it('updates category_id on habit', function () {
+        UserProfile::create([
+            'id' => 1,
+            'name' => 'Test User',
+            'identity' => 'athlete',
+            'identity_label' => 'The Athlete',
+            'identity_icon' => '🏃',
+        ]);
+
+        $category = Category::create([
+            'name' => 'Morning Routine',
+            'color' => '#f97316',
+            'is_preset' => true,
+        ]);
+
+        $habit = Habit::create([
+            'name' => 'Run',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'time_of_day' => 'morning',
+            'difficulty' => 'medium',
+        ]);
+
+        $this->putJson("/api/habits/{$habit->id}", [
+            'name' => 'Run',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'categoryId' => $category->id,
+        ])->assertOk()
+            ->assertJsonPath('categoryId', $category->id);
+
+        $this->assertDatabaseHas('habits', [
+            'id' => $habit->id,
+            'category_id' => $category->id,
+        ]);
+    });
+
+    it('updates reminder_time on habit', function () {
+        $habit = Habit::create([
+            'name' => 'Run',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'time_of_day' => 'morning',
+            'difficulty' => 'medium',
+            'reminder_time' => '08:00',
+        ]);
+
+        $this->putJson("/api/habits/{$habit->id}", [
+            'name' => 'Run',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'reminderTime' => '07:30',
+        ])->assertOk()
+            ->assertJsonPath('reminderTime', '07:30');
+
+        $this->assertDatabaseHas('habits', [
+            'id' => $habit->id,
+            'reminder_time' => '07:30',
+        ]);
     });
 });

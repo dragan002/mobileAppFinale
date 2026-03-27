@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Habit extends Model
@@ -12,11 +13,17 @@ class Habit extends Model
         'name', 'emoji', 'color', 'time_of_day',
         'why', 'bundle', 'two_min_version', 'stack',
         'duration', 'reward', 'difficulty',
+        'category_id', 'reminder_time',
     ];
 
     public function completions(): HasMany
     {
         return $this->hasMany(HabitCompletion::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function calculateStreak(): int
@@ -107,6 +114,8 @@ class Habit extends Model
             'reward' => $this->reward ?? '',
             'diff' => $this->difficulty,
             'createdAt' => $this->created_at->format('Y-m-d'),
+            'categoryId' => $this->category_id,
+            'reminderTime' => $this->reminder_time ?? '',
         ];
     }
 }

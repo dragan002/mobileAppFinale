@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Habit;
 use App\Models\HabitCompletion;
 use App\Models\UserProfile;
@@ -42,6 +43,14 @@ class StateController extends Controller
             $bestStreaks[$habit->id] = $habit->calculateBestStreak();
         }
 
+        $categories = Category::query()
+            ->where(function ($q) use ($user) {
+                $q->where('is_preset', true);
+                $q->orWhere('user_profile_id', $user->id);
+            })
+            ->orderBy('sort_order')
+            ->get();
+
         return response()->json([
             'user' => [
                 'name' => $user->name,
@@ -54,6 +63,7 @@ class StateController extends Controller
             'completions' => $completionsMap,
             'streaks' => $streaks,
             'bestStreaks' => $bestStreaks,
+            'categories' => $categories->map->toApiArray()->values(),
         ]);
     }
 }

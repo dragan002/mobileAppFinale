@@ -29,6 +29,8 @@ class HabitController extends Controller
             'duration' => $request->input('duration'),
             'reward' => $request->input('reward'),
             'difficulty' => $request->input('diff', 'medium'),
+            'category_id' => $request->input('categoryId'),
+            'reminder_time' => $request->input('reminderTime'),
         ]);
 
         return response()->json($habit->toApiArray(), 201);
@@ -54,6 +56,8 @@ class HabitController extends Controller
             'duration' => $request->input('duration'),
             'reward' => $request->input('reward'),
             'difficulty' => $request->input('diff', $habit->difficulty),
+            'category_id' => $request->input('categoryId', $habit->category_id),
+            'reminder_time' => $request->input('reminderTime', $habit->reminder_time),
         ]);
 
         return response()->json($habit->fresh()->toApiArray());

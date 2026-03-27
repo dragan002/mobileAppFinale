@@ -83,4 +83,70 @@ describe('Reminder fields in API responses', function () {
         $response->assertCreated()
             ->assertJsonPath('time', 'morning');
     });
+
+    it('stores reminder_time when provided', function () {
+        $response = $this->postJson('/api/habits', [
+            'name' => 'Morning Run',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'reminderTime' => '09:30',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('reminderTime', '09:30');
+
+        $this->assertDatabaseHas('habits', [
+            'name' => 'Morning Run',
+            'reminder_time' => '09:30',
+        ]);
+    });
+
+    it('returns reminder_time in api array', function () {
+        UserProfile::create([
+            'name' => 'Tester',
+            'identity' => 'athlete',
+            'identity_label' => 'The Athlete',
+            'identity_icon' => '🏃',
+        ]);
+
+        Habit::create([
+            'name' => 'Evening Read',
+            'emoji' => '📚',
+            'color' => '#1e1a3a',
+            'time_of_day' => 'evening',
+            'difficulty' => 'medium',
+            'reminder_time' => '21:00',
+        ]);
+
+        $response = $this->getJson('/api/state');
+
+        $response->assertOk()
+            ->assertJsonPath('habits.0.reminderTime', '21:00');
+    });
+
+    it('updates reminder_time on habit', function () {
+        $habit = Habit::create([
+            'name' => 'Old Name',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'time_of_day' => 'morning',
+            'difficulty' => 'medium',
+            'reminder_time' => '08:00',
+        ]);
+
+        $response = $this->putJson("/api/habits/{$habit->id}", [
+            'name' => 'Old Name',
+            'emoji' => '🏃',
+            'color' => '#1e3a2f',
+            'reminderTime' => '07:30',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('reminderTime', '07:30');
+
+        $this->assertDatabaseHas('habits', [
+            'id' => $habit->id,
+            'reminder_time' => '07:30',
+        ]);
+    });
 });
