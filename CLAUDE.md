@@ -115,6 +115,25 @@ SQLite at `database/database.sqlite`. App tables: `user_profile`, `habits`, `hab
 - Mobile config: `my-app/nativephp/` (intentionally gitignored — generated at build time)
 - The `<native:bottom-nav>` component in `layouts/app.blade.php` renders a platform-native tab bar, but `welcome.blade.php` does not use the shared layout — it has its own inline bottom nav for the browser preview
 
+## Building for Android (native install on phone)
+
+Requires Android Studio, 7-Zip, and `ANDROID_HOME` + `adb` in PATH. Full setup details in `SETUP.md`.
+
+**Critical build issues on Windows:**
+
+1. **`sdk.dir` resets to empty** — every `native:install` regenerates `nativephp/android/local.properties` with an empty `sdk.dir`. Fix it after each install, or set `$env:ANDROID_HOME` in the session instead.
+
+2. **Composer timeout during build** — `vendor/nativephp/mobile/src/Traits/PreparesBuild.php:247` has a 300s timeout that's too short. Change to `->timeout(900)`. This resets after `composer update`.
+
+3. **PHP binaries must be downloaded separately** — `native:install` downloads them from `bin.nativephp.com`, but the fetch can fail silently. If `libphp.a` is missing in `nativephp/android/app/src/main/cpp/staticLibs/arm64-v8a/`, manually download from `https://bin.nativephp.com/main/versions.json` and extract with 7-Zip into `nativephp/android/app/src/main/`.
+
+4. **Wireless ADB recommended** — USB detection is unreliable (especially Xiaomi). Use `adb pair <IP:PORT>` then `adb connect <IP:PORT>` via Developer Options → Wireless Debugging.
+
+```bash
+$env:ANDROID_HOME = "C:\Users\pclogiklabs\AppData\Local\Android\Sdk"
+php artisan native:run android
+```
+
 ## Windows PHP Requirements
 
 Enable in `C:\php\php.ini`:
