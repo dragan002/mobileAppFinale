@@ -50,17 +50,24 @@ The entire UI lives in a single file — all HTML, CSS, and JavaScript inline. I
 | `screen-home` | Today's habits, progress card, daily quote |
 | `screen-add` | 4-step habit creation (Atomic Habits 4 Laws) |
 | `screen-stats` | Streaks, weekly grid, compound chart, per-habit breakdown |
-| `screen-habit-detail` | 12-week heatmap, streak hero, insight message, complete button |
+| `screen-habit-detail` | 12-week heatmap, streak hero, insight message, Your Setup card, reminder toggle, complete button |
 | `milestone-overlay` | Full-screen celebration at 7/14/21/30/60/90/100 day streaks |
+| `profile-sheet` | Slide-up sheet from avatar tap: identity dashboard, edit name/identity, reset data |
+| `weekly-review-overlay` | Sunday/7-day reflection prompt with weekly completion summary |
 
 **State management:** A single `state` object `{ user, habits, completions, streaks, bestStreaks }` is kept in memory, persisted to `localStorage` as a fast cache, and synced to the backend via `fetch`. All UI mutations are optimistic — the UI updates instantly, then a background `api()` call syncs to the server.
 
 **Key JS functions to know:**
-- `init()` — loads from localStorage then refreshes from `/api/state`
+- `init()` — loads from localStorage then refreshes from `/api/state`; calls `maybeShowWeeklyReview()` after sync
 - `toggleHabit(id)` — optimistic completion toggle + POST `/api/completions/toggle`
-- `showHabitDetail(id)` — renders the detail screen from in-memory state
-- `saveHabit()` — POSTs to `/api/habits`, replaces temp ID with server ID on response
+- `showHabitDetail(id)` — renders detail screen including Your Setup card (4-Laws data) and reminder toggle
+- `saveHabit()` — creates (POST) or updates (PUT) a habit; checks `editingHabitId` to determine mode
+- `showEditHabit(id)` — pre-populates the 4-step add form for editing an existing habit
 - `showMilestone(days)` — triggered by server response when a streak milestone is hit
+- `openProfileSheet()` — computes identity stats (total votes = total completions) and opens profile sheet
+- `maybeShowWeeklyReview()` — shows weekly reflection overlay on Sundays or after 7 days since last review
+
+**localStorage keys:** `atomicme_state` (full state cache), `atomicme_reminders` (per-habit notification toggles), `atomicme_last_reviewed_week` (last weekly review date)
 
 ### Backend
 
@@ -74,21 +81,25 @@ All API routes live in `routes/web.php` (not `api.php`) so they share the web mi
 | POST | `/api/setup` | `Api\SetupController` | Create/update user profile (upsert at id=1) |
 | POST | `/api/habits` | `Api\HabitController` | Create a habit |
 | DELETE | `/api/habits/{habit}` | `Api\HabitController` | Delete a habit (cascades completions) |
+| PUT | `/api/habits/{habit}` | `Api\HabitController` | Update a habit (never touches completions or streaks) |
 | POST | `/api/completions/toggle` | `Api\CompletionController` | Toggle today's completion; returns `{ completed, streak, milestone }` |
+| POST | `/api/reflections` | `Api\ReflectionController` | Upsert weekly reflection by `week_of` date |
+| DELETE | `/api/reset` | `Api\ResetController` | Wipe all user data (completions → habits → user_profile in FK order) |
 
 ### Models
 
 - **`UserProfile`** — single row (id=1), stores name + identity choice. Table: `user_profile`.
 - **`Habit`** — stores all 4-Law fields from the add form. Has `calculateStreak()` and `calculateBestStreak()` methods, plus `toApiArray()` that maps DB column names to the camelCase JS field names the frontend expects.
 - **`HabitCompletion`** — `habit_id` + `completed_date` (unique together). Cascade-deleted when a habit is deleted.
+- **`WeeklyReflection`** — `user_profile_id` + `week_of` (date, unique per user per week) + `note` (nullable text). Stores Sunday reflections.
 
 ### Streak logic
 
-`Habit::calculateStreak()` walks backwards from today through ordered completions, counting consecutive days. If today is not yet completed, it still counts the streak up to yesterday (no penalty for an incomplete day). `CompletionController::toggle()` checks if the new streak is exactly a milestone value (7, 14, 21, 30, 60, 90, 100) and returns it so the frontend can trigger the celebration overlay.
+`Habit::calculateStreak()` walks backwards from today through ordered completions with a **one grace day tolerance** — a single missed day within a streak does not reset the count; two consecutive missed days do. The grace day flag is not reusable within the same streak walk. `calculateBestStreak()` uses the same tolerance. `CompletionController::toggle()` checks if the new streak hits a milestone (7, 14, 21, 30, 60, 90, 100) and returns it so the frontend triggers the celebration overlay. The frontend shows "grace day active" in purple when a streak is alive but today and yesterday are both incomplete.
 
 ## Database
 
-SQLite at `database/database.sqlite`. Three app tables: `user_profile`, `habits`, `habit_completions`. The standard Laravel `users` table also exists but is unused by the app.
+SQLite at `database/database.sqlite`. App tables: `user_profile`, `habits`, `habit_completions`, `weekly_reflections`. The standard Laravel `users` table also exists but is unused by the app.
 
 ## Stack
 
