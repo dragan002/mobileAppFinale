@@ -13,8 +13,19 @@ class Habit extends Model
         'name', 'emoji', 'color', 'time_of_day',
         'why', 'bundle', 'two_min_version', 'stack',
         'duration', 'reward', 'difficulty',
-        'category_id', 'reminder_time',
+        'category_id', 'reminder_time', 'target_days_per_week',
     ];
+
+    protected $attributes = [
+        'target_days_per_week' => 7,
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'target_days_per_week' => 'integer',
+        ];
+    }
 
     public function completions(): HasMany
     {
@@ -26,7 +37,21 @@ class Habit extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * Returns the current streak count as a plain integer.
+     * Daily habits (target_days_per_week = 7) use day-based logic.
+     * Frequency habits use week-based logic (weeks fully meeting target).
+     */
     public function calculateStreak(): int
+    {
+        return $this->calculateStreakData()['value'];
+    }
+
+    /**
+     * Returns structured streak data: { value, unit, graceDayActive }.
+     * Used by toApiArray() and StateController.
+     */
+    public function calculateStreakData(): array
     {
         $completions = $this->completions()
             ->orderBy('completed_date', 'desc')
@@ -34,6 +59,19 @@ class Habit extends Model
             ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
             ->toArray();
 
+        if ($this->target_days_per_week === 7) {
+            return $this->calculateDailyStreakData($completions);
+        }
+
+        return $this->calculateWeekBasedStreakData($completions);
+    }
+
+    /**
+     * @param  string[]  $completions  Dates descending (Y-m-d)
+     * @return array{ value: int, unit: string, graceDayActive: bool }
+     */
+    private function calculateDailyStreakData(array $completions): array
+    {
         $streak = 0;
         $expected = Carbon::today();
         $graceUsed = false;
@@ -42,20 +80,73 @@ class Habit extends Model
             if ($date === $expected->format('Y-m-d')) {
                 $streak++;
                 $expected->subDay();
-            } elseif (! $graceUsed && $date === $expected->subDay()->format('Y-m-d')) {
-                // One missed day — apply the grace day and count this completion
+            } elseif (! $graceUsed && $date === $expected->copy()->subDay()->format('Y-m-d')) {
                 $graceUsed = true;
                 $streak++;
-                $expected->subDay();
+                $expected->subDays(2);
             } else {
                 break;
             }
         }
 
-        return $streak;
+        return [
+            'value' => $streak,
+            'unit' => 'days',
+            'graceDayActive' => $graceUsed,
+        ];
     }
 
+    /**
+     * @param  string[]  $completions  Dates descending (Y-m-d)
+     * @return array{ value: int, unit: string, graceDayActive: bool }
+     */
+    private function calculateWeekBasedStreakData(array $completions): array
+    {
+        $streakWeeks = 0;
+        $graceUsed = false;
+        $currentWeekStart = Carbon::today()->startOfWeek();
+
+        for ($weeks = 0; ; $weeks++) {
+            $weekStart = $currentWeekStart->copy()->subWeeks($weeks);
+            $weekEnd = $weekStart->copy()->addDays(6)->format('Y-m-d');
+            $weekStartStr = $weekStart->format('Y-m-d');
+
+            $weekCount = 0;
+            foreach ($completions as $date) {
+                if ($date >= $weekStartStr && $date <= $weekEnd) {
+                    $weekCount++;
+                }
+            }
+
+            if ($weekCount >= $this->target_days_per_week) {
+                $streakWeeks++;
+            } elseif ($weekCount >= ($this->target_days_per_week - 1) && ! $graceUsed) {
+                $graceUsed = true;
+                $streakWeeks++;
+            } else {
+                break;
+            }
+        }
+
+        return [
+            'value' => $streakWeeks,
+            'unit' => 'weeks',
+            'graceDayActive' => $graceUsed,
+        ];
+    }
+
+    /**
+     * Returns the best streak count as a plain integer.
+     */
     public function calculateBestStreak(): int
+    {
+        return $this->calculateBestStreakData()['value'];
+    }
+
+    /**
+     * Returns structured best streak data: { value, unit }.
+     */
+    public function calculateBestStreakData(): array
     {
         $completions = $this->completions()
             ->orderBy('completed_date')
@@ -63,6 +154,24 @@ class Habit extends Model
             ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
             ->toArray();
 
+        if ($this->target_days_per_week === 7) {
+            return [
+                'value' => $this->calculateDailyBestStreak($completions),
+                'unit' => 'days',
+            ];
+        }
+
+        return [
+            'value' => $this->calculateWeekBasedBestStreak($completions),
+            'unit' => 'weeks',
+        ];
+    }
+
+    /**
+     * @param  string[]  $completions  Dates ascending (Y-m-d)
+     */
+    private function calculateDailyBestStreak(array $completions): int
+    {
         if (empty($completions)) {
             return 0;
         }
@@ -77,15 +186,12 @@ class Habit extends Model
             $gap = (int) $prev->diffInDays($curr);
 
             if ($gap === 1) {
-                // Consecutive day — continue streak, reset grace availability
                 $graceUsed = false;
                 $current++;
             } elseif ($gap === 2 && ! $graceUsed) {
-                // Exactly one missed day — apply grace and continue
                 $graceUsed = true;
                 $current++;
             } else {
-                // Two or more consecutive missing days — reset
                 $current = 1;
                 $graceUsed = false;
             }
@@ -98,18 +204,69 @@ class Habit extends Model
         return $best;
     }
 
+    /**
+     * @param  string[]  $completions  Dates ascending (Y-m-d)
+     */
+    private function calculateWeekBasedBestStreak(array $completions): int
+    {
+        if (empty($completions)) {
+            return 0;
+        }
+
+        // Build a map of week-start => completion count
+        $weekCounts = [];
+        foreach ($completions as $date) {
+            $weekStart = Carbon::parse($date)->startOfWeek()->format('Y-m-d');
+            $weekCounts[$weekStart] = ($weekCounts[$weekStart] ?? 0) + 1;
+        }
+
+        // Walk every calendar week from the first completion to today
+        $firstDate = Carbon::parse(min(array_keys($weekCounts)))->startOfWeek();
+        $todayWeek = Carbon::today()->startOfWeek();
+        $target = $this->target_days_per_week;
+
+        $best = 0;
+        $current = 0;
+        $graceUsed = false;
+        $cursor = $firstDate->copy();
+
+        while ($cursor->lte($todayWeek)) {
+            $key = $cursor->format('Y-m-d');
+            $count = $weekCounts[$key] ?? 0;
+
+            if ($count >= $target) {
+                $current++;
+                $graceUsed = false;
+            } elseif ($count >= ($target - 1) && ! $graceUsed) {
+                $graceUsed = true;
+                $current++;
+            } else {
+                $current = 0;
+                $graceUsed = false;
+            }
+
+            if ($current > $best) {
+                $best = $current;
+            }
+
+            $cursor->addWeek();
+        }
+
+        return $best;
+    }
+
     public function calculatePhase(): array
     {
         $streak = $this->calculateStreak();
         $daysSinceCreation = $this->created_at->diffInDays(Carbon::today());
 
-        // Calculate consistency rate (completions in last 90 days / 90)
+        // Expected completions in 90 days, adjusted for frequency
+        $expectedCompletions = $this->target_days_per_week * 13; // ~13 weeks in 90 days
         $recentCompletions = $this->completions()
             ->where('completed_date', '>=', Carbon::today()->subDays(90))
             ->count();
-        $consistencyRate = min($recentCompletions / 90, 1.0);
+        $consistencyRate = min($recentCompletions / max($expectedCompletions, 1), 1.0);
 
-        // Determine phase based on days and consistency
         if ($daysSinceCreation <= 14) {
             return [
                 'phase' => 'initiation',
@@ -119,7 +276,6 @@ class Habit extends Model
                 'icon' => '🌱',
             ];
         } elseif ($daysSinceCreation <= 40) {
-            // Struggle phase - the valley of disappointment
             return [
                 'phase' => 'struggle',
                 'label' => 'The Struggle',
@@ -128,7 +284,6 @@ class Habit extends Model
                 'icon' => '⛰️',
             ];
         } elseif ($daysSinceCreation <= 66 || $consistencyRate < 0.75) {
-            // Autopilot approach - consistency is building
             return [
                 'phase' => 'autopilot',
                 'label' => 'Autopilot Approaching',
@@ -138,7 +293,6 @@ class Habit extends Model
                 'icon' => '🚀',
             ];
         } else {
-            // Identity phase - it's who you are
             return [
                 'phase' => 'identity',
                 'label' => 'Identity',
@@ -153,6 +307,8 @@ class Habit extends Model
     public function toApiArray(): array
     {
         $phase = $this->calculatePhase();
+        $streakData = $this->calculateStreakData();
+        $bestStreakData = $this->calculateBestStreakData();
 
         return [
             'id' => $this->id,
@@ -171,6 +327,9 @@ class Habit extends Model
             'categoryId' => $this->category_id,
             'reminderTime' => $this->reminder_time ?? '',
             'phase' => $phase,
+            'targetDaysPerWeek' => $this->target_days_per_week,
+            'streakData' => $streakData,
+            'bestStreakData' => $bestStreakData,
         ];
     }
 }

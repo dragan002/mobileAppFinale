@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Habit;
 use App\Models\HabitCompletion;
+use App\Models\UserProfile;
+use App\Services\AchievementEvaluator;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CompletionController extends Controller
 {
-    private const MILESTONES = [7, 14, 21, 30, 60, 90, 100];
+    private const DAILY_MILESTONES = [7, 14, 21, 30, 60, 90, 100];
+
+    private const WEEKLY_MILESTONES = [4, 9, 13, 26, 52];
 
     public function toggle(Request $request): JsonResponse
     {
@@ -41,21 +45,47 @@ class CompletionController extends Controller
         }
 
         $habit = Habit::find($habitId);
-        $streak = $habit->calculateStreak();
+        $streakData = $habit->calculateStreakData();
+        $streakValue = $streakData['value'];
+        $streakUnit = $streakData['unit'];
 
         $milestone = null;
         $milestoneLabel = null;
 
-        if ($completed && in_array($streak, self::MILESTONES, true)) {
-            $milestone = $streak;
-            $milestoneLabel = $streak.' Day Streak!';
+        if ($completed) {
+            $milestones = $streakUnit === 'weeks' ? self::WEEKLY_MILESTONES : self::DAILY_MILESTONES;
+            if (in_array($streakValue, $milestones, true)) {
+                $milestone = $streakValue;
+                $milestoneLabel = $streakUnit === 'weeks'
+                    ? $streakValue.' Week Streak!'
+                    : $streakValue.' Day Streak!';
+            }
+        }
+
+        // Evaluate achievement unlocks on completion (not on uncomplete)
+        $achievementPayload = null;
+        $user = UserProfile::first();
+        if ($user && $completed) {
+            $evaluator = new AchievementEvaluator;
+            $unlocked = $evaluator->evaluate($user, $habitId, wasCompleted: false);
+            if ($unlocked) {
+                $achievementPayload = [
+                    'code' => $unlocked->code,
+                    'name' => $unlocked->name,
+                    'icon' => $unlocked->icon,
+                    'is_prestige' => $unlocked->is_prestige,
+                    'description' => $unlocked->description,
+                ];
+            }
         }
 
         return response()->json([
             'completed' => $completed,
-            'streak' => $streak,
+            'streak' => $streakValue,
+            'streakData' => $streakData,
             'milestone' => $milestone,
             'milestoneLabel' => $milestoneLabel,
+            'achievement' => $achievementPayload,
         ]);
     }
 

@@ -54,7 +54,7 @@
         .btn-primary:disabled { opacity: 0.4; cursor: default; }
 
         /* ── MAIN APP ── */
-        #screen-home, #screen-stats, #screen-add, #screen-growth { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); padding-top: env(safe-area-inset-top, 0); }
+        #screen-home, #screen-stats, #screen-add, #screen-growth, #screen-achievements { padding-top: env(safe-area-inset-top, 0); }
 
         /* Header */
         .app-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
@@ -167,10 +167,10 @@
         .daily-quote { margin: 0.75rem 1.25rem 0; padding: 0.875rem 1rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; font-size: 0.75rem; color: #8B92AB; line-height: 1.6; font-style: italic; }
 
         /* Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.75rem 0 max(1.1rem, env(safe-area-inset-bottom)); z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #8B92AB; cursor: pointer; padding: 0.75rem 1.25rem; min-height: 44px; min-width: 44px; transition: color .2s; }
+        .bottom-nav { position: sticky; bottom: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.4rem 0 max(0.75rem, env(safe-area-inset-bottom)); z-index: 200; flex-shrink: 0; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.7rem; color: #8B92AB; cursor: pointer; padding: 0.5rem 0; min-height: 44px; min-width: 44px; transition: color .2s; flex: 1; }
         .nav-item.active { color: #C084FC; }
-        .nav-icon { font-size: 1.5rem; }
+        .nav-icon { font-size: 1.25rem; }
 
         /* Active indicator dot below icon */
         .nav-item.active::after {
@@ -184,7 +184,7 @@
         }
 
         /* ── ADD HABIT SCREEN ── */
-        #screen-add { background: #0F1221; padding: 0; padding-bottom: 5.5rem; }
+        #screen-add { background: #0F1221; padding: 0; padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); }
         .add-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
         .back-btn { width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px; background: #242B45; border: none; border-radius: 0.625rem; color: #EAEDF6; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .add-header h2 { font-size: 1.1rem; font-weight: 700; flex: 1; }
@@ -273,7 +273,7 @@
         .detail-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
         .detail-header h2 { font-size: 1rem; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .detail-delete-btn { background: none; border: none; color: #8B92AB; font-size: 1.1rem; cursor: pointer; padding: 0.5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-        .detail-body { flex: 1; overflow-y: auto; padding-bottom: 5.5rem; -webkit-overflow-scrolling: touch; }
+        .detail-body { flex: 1; overflow-y: auto; padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); -webkit-overflow-scrolling: touch; }
 
         .streak-hero { text-align: center; padding: 2rem 1.25rem 1.5rem; }
         .streak-fire { font-size: 3.5rem; margin-bottom: 0.25rem; line-height: 1; }
@@ -386,6 +386,16 @@
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.purple { background: linear-gradient(135deg, #7c3aed, #db2777); }
 
+        /* ── FREQUENCY PICKER ── */
+        .frequency-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
+        .frequency-btn { background: #1A1F35; border: 2px solid #2A3152; border-radius: 0.75rem; padding: 0.75rem 0.25rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #8B92AB; transition: all 0.2s; text-align: center; }
+        .frequency-btn:active { transform: scale(0.95); }
+        .frequency-btn.selected { border-color: #A855F7; background: #1f1535; color: #C084FC; }
+
+        /* ── HEATMAP FREQUENCY STATES ── */
+        .heatmap-cell.neutral { background: #1A1F35; border: 1px solid #242B45; }
+        .heatmap-cell.missed  { background: #2d1515; }
+
         /* Scrollbar */
         ::-webkit-scrollbar { display: none; }
         * { -webkit-tap-highlight-color: transparent; }
@@ -427,6 +437,28 @@
         .btn-save-profile:active { opacity: 0.85; }
         .btn-reset-data { width: 100%; padding: 1rem; background: transparent; border: 2px solid #ef444444; border-radius: 0.875rem; color: #ef4444; font-size: 0.9rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; margin-bottom: 1.5rem; }
         .btn-reset-data:active { background: #ef444411; }
+
+        /* ── ACHIEVEMENTS SCREEN ── */
+        .achievement-card { display: flex; align-items: flex-start; gap: 1rem; background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin: 0 1.25rem 0.75rem; transition: all 0.2s ease; }
+        .achievement-icon { width: 3rem; height: 3rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #242B45; }
+        .achievement-card.unlocked .achievement-icon { background: linear-gradient(135deg, #7c3aed22, #db287722); border: 1px solid #7c3aed55; }
+        .achievement-card.unlocked { border-left: 3px solid #A855F7; padding-left: calc(1.25rem - 3px); }
+        .achievement-info { flex: 1; min-width: 0; }
+        .achievement-name { font-size: 0.92rem; font-weight: 700; color: #EAEDF6; margin-bottom: 0.2rem; }
+        .achievement-desc { font-size: 0.78rem; color: #8B92AB; line-height: 1.5; margin-bottom: 0.4rem; }
+        .achievement-earned { font-size: 0.7rem; color: #34D399; font-weight: 600; }
+        .achievement-card.locked { border-color: #1E2338; background: #151929; }
+        .achievement-card.locked .achievement-icon { background: #1A1F35; filter: grayscale(1); }
+        .achievement-card.locked .achievement-name { color: #8B92AB; }
+        .achievement-criteria { font-size: 0.72rem; color: #5A6180; font-style: italic; margin-top: 0.25rem; }
+        .achievement-progress-wrap { margin-top: 0.5rem; }
+        .achievement-progress-label { font-size: 0.7rem; color: #8B92AB; margin-bottom: 0.3rem; }
+        .achievement-progress-bar { height: 4px; background: #242B45; border-radius: 999px; overflow: hidden; }
+        .achievement-progress-fill { height: 4px; background: linear-gradient(135deg, #7c3aed, #db2777); border-radius: 999px; transition: width 0.5s ease; }
+        .achievement-card.prestige.unlocked { border-left-color: #F59E0B; border-color: #F59E0B33; background: linear-gradient(135deg, #1A1F35 0%, #1f1a0f 100%); }
+        .achievement-card.prestige.unlocked .achievement-icon { background: linear-gradient(135deg, #F59E0B22, #EAB30822); border: 1px solid #F59E0B55; }
+        .prestige-tag { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #F59E0B; background: #F59E0B18; border-radius: 4px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; }
+        .section-title.prestige { color: #F59E0B; }
     </style>
 </head>
 <body>
@@ -656,6 +688,7 @@
         <div class="nav-item active" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
         <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
         <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
     </nav>
 </div>
 
@@ -668,6 +701,7 @@
     <div class="add-body">
         <div class="law-steps">
             <div class="law-step active" id="step-0"></div>
+            <div class="law-step" id="step-freq"></div>
             <div class="law-step" id="step-1"></div>
             <div class="law-step" id="step-2"></div>
             <div class="law-step" id="step-3"></div>
@@ -727,7 +761,30 @@
             </div>
 
             <div class="nav-row">
-                <button class="btn-next" style="flex:1" onclick="goStep(1)">Next: Make it Attractive →</button>
+                <button class="btn-next" style="flex:1" onclick="goStep('freq')">Next: Set Frequency →</button>
+            </div>
+        </div>
+
+        <!-- STEP FREQ: How Often? -->
+        <div id="add-step-freq" style="display:none;">
+            <div class="law-badge">🎯 Frequency</div>
+            <div class="law-title">How Often?</div>
+            <div class="law-desc">"Reduce the habit to its minimal version." How many days per week can you realistically commit to this?</div>
+
+            <div class="form-group">
+                <label class="form-label">Target days per week</label>
+                <div class="frequency-grid" id="frequency-grid"></div>
+            </div>
+
+            <div class="form-group">
+                <p style="font-size:0.78rem;color:#8B92AB;line-height:1.5;">
+                    A consistent 3x/week habit beats an abandoned daily goal. Pick what you can actually stick to.
+                </p>
+            </div>
+
+            <div class="nav-row">
+                <button class="btn-secondary" onclick="goStep(0)">← Back</button>
+                <button class="btn-next" onclick="goStep(1)">Next: Make it Attractive →</button>
             </div>
         </div>
 
@@ -761,7 +818,7 @@
             </div>
 
             <div class="nav-row">
-                <button class="btn-secondary" onclick="goStep(0)">← Back</button>
+                <button class="btn-secondary" onclick="goStep('freq')">← Back</button>
                 <button class="btn-next" onclick="goStep(2)">Next: Make it Easy →</button>
             </div>
         </div>
@@ -877,6 +934,7 @@
         <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
         <div class="nav-item active" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
         <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
     </nav>
 </div>
 
@@ -931,6 +989,47 @@
         <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
         <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
         <div class="nav-item active" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
+    </nav>
+</div>
+
+<!-- ══════════════════ SCREEN: ACHIEVEMENTS ══════════════════ -->
+<div class="screen" id="screen-achievements">
+    <div class="app-header">
+        <div class="header-greeting">
+            <h2>Achievements</h2>
+            <p>Unlock badges by mastering your habits.</p>
+        </div>
+        <div class="avatar" id="achievements-avatar" onclick="openProfileSheet()">?</div>
+    </div>
+
+    <div class="stats-section">
+        <div id="achievements-empty-state" style="padding: 0 1.25rem; margin-bottom: 1.25rem; display: none;">
+            <p style="font-size: 0.85rem; color: #8B92AB; line-height: 1.6;">
+                Complete habits to unlock badges. Start with a <strong style="color: #EAEDF6;">Perfect Day</strong> — complete all your habits today.
+            </p>
+        </div>
+
+        <div id="easy-achievements-section" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">Easy Achievements</div>
+            </div>
+            <div id="easy-achievements-list"></div>
+        </div>
+
+        <div id="prestige-achievements-section" style="display: none;">
+            <div class="section-header">
+                <div class="section-title prestige">Prestige Achievements</div>
+            </div>
+            <div id="prestige-achievements-list"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
+        <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+        <div class="nav-item active" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
     </nav>
 </div>
 
@@ -1038,6 +1137,24 @@ const MILESTONES = [
     { days: 100, emoji: '🌟', title: '100 Days!!!',     sub: "Legendary. Truly legendary. You are living proof it works.",         quote: "Small changes often appear to make no difference until you cross a critical threshold." },
 ];
 
+const WEEKLY_MILESTONES = [
+    { weeks: 4,  emoji: '🎯', title: '4 Weeks Consistent!', sub: "One full month of showing up. This habit is taking hold.",         quote: "You don't have to be the victim of your environment. You can also be the architect of it." },
+    { weeks: 9,  emoji: '💪', title: '9 Weeks — Habit Forming!', sub: "Research shows habits solidify around the 66-day mark. You're there.", quote: "Habits are the compound interest of self-improvement." },
+    { weeks: 13, emoji: '🏆', title: 'Quarter Year!',         sub: "13 weeks of consistent effort. A full quarter of real change.",   quote: "Every action you take is a vote for the type of person you wish to become." },
+    { weeks: 26, emoji: '⚡', title: 'Halfway to a Year!',    sub: "26 weeks. You're unstoppable. Half a year of identity votes.",    quote: "The most effective form of motivation is progress." },
+    { weeks: 52, emoji: '👑', title: 'A Full Year!',          sub: "52 weeks of consistency. You ARE this habit. Crown deserved.",    quote: "Small changes often appear to make no difference until you cross a critical threshold." },
+];
+
+const ACHIEVEMENTS_DEFS = {
+    perfect_day:      { name: 'Perfect Day',      icon: '⭐',  desc: 'Complete all habits in one day',              prestige: false, criteria: 'Complete all your habits today' },
+    perfect_week:     { name: 'Perfect Week',     icon: '📅',  desc: 'Complete all habits for all 7 days',          prestige: false, criteria: 'Complete all habits every day this week' },
+    habit_builder:    { name: 'Habit Builder',    icon: '🔨',  desc: 'Create your 3rd and 5th habits',             prestige: false, criteria: 'Create 3+ habits' },
+    comeback:         { name: 'Comeback',         icon: '🔥',  desc: 'Rebuild a streak after it broke',            prestige: false, criteria: 'Break a streak, then rebuild it' },
+    one_percent_club: { name: 'The 1% Club',      icon: '💎',  desc: '365 consecutive days on one habit',          prestige: true,  criteria: 'Achieve 365-day streak on any habit' },
+    atomic_identity:  { name: 'Atomic Identity',  icon: '⚛️', desc: 'All habits in Identity phase',               prestige: true,  criteria: 'Reach Identity phase on all habits' },
+    perfect_quarter:  { name: 'Perfect Quarter',  icon: '👑',  desc: '90 days straight, zero missed days',         prestige: true,  criteria: 'Complete 90 days with no grace days used' },
+};
+
 const QUOTES = [
     "You do not rise to the level of your goals. You fall to the level of your systems.",
     "Every action you take is a vote for the type of person you wish to become.",
@@ -1059,15 +1176,18 @@ let state = {
     habits: [],
     completions: {},       // { 'YYYY-MM-DD': [habitId, ...] }
     completionNotes: {},   // { 'YYYY-MM-DD:habitId': 'note text' }
-    streaks: {},           // { habitId: n }
+    streaks: {},           // { habitId: n }     — plain integer for backward compat
     bestStreaks: {},       // { habitId: n }
+    streakData: {},        // { habitId: { value, unit, graceDayActive } }
+    bestStreakData: {},    // { habitId: { value, unit } }
     categories: [],        // array of category objects from server
+    achievements: [],      // [{ code, unlocked_at }]
 };
 
 let currentDetailHabitId = null;
 let editingHabitId = null;
 let currentStep = 0;
-let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '' };
+let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
 let selectedIdentity = null;
 let activeCategoryFilter = null; // null = show all categories
 
@@ -1095,7 +1215,25 @@ async function api(method, url, data = null) {
 //  PERSISTENCE
 // ══════════════════════════════════════════
 function saveLocal() { try { localStorage.setItem('atomicme_v3', JSON.stringify(state)); } catch(e) {} }
-function loadLocal() { try { const r = localStorage.getItem('atomicme_v3'); if (r) state = JSON.parse(r); } catch(e) {} }
+function loadLocal() {
+    try {
+        const r = localStorage.getItem('atomicme_v3');
+        if (r) {
+            const loaded = JSON.parse(r);
+            // Merge loaded data with current state defaults so new fields added
+            // in later versions don't crash code that expects them to exist.
+            state = {
+                ...state,
+                ...loaded,
+                streakData:      loaded.streakData      || {},
+                bestStreakData:  loaded.bestStreakData   || {},
+                completionNotes: loaded.completionNotes || {},
+                categories:      loaded.categories      || [],
+                achievements:    loaded.achievements    || [],
+            };
+        }
+    } catch(e) {}
+}
 
 // ══════════════════════════════════════════
 //  INIT
@@ -1118,7 +1256,10 @@ async function init() {
             state.completionNotes = data.completionNotes || {};
             state.streaks         = data.streaks;
             state.bestStreaks     = data.bestStreaks;
+            state.streakData      = data.streakData || {};
+            state.bestStreakData  = data.bestStreakData || {};
             state.categories      = data.categories || [];
+            state.achievements    = data.achievements || [];
             saveLocal();
             showScreen('screen-home');
             renderHome();
@@ -1160,6 +1301,7 @@ function showScreen(id) {
     if (id === 'screen-home')  { editingHabitId = null; renderHome(); }
     if (id === 'screen-stats') { renderStats(); }
     if (id === 'screen-growth') { renderGrowth(); }
+    if (id === 'screen-achievements') { renderAchievements(); }
     if (id === 'screen-add' && !editingHabitId) { resetAddForm(); }
 }
 
@@ -1217,6 +1359,8 @@ function renderHome() {
     document.getElementById('home-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
     document.getElementById('home-avatar').textContent = u.name[0].toUpperCase();
     document.getElementById('stats-avatar').textContent = u.name[0].toUpperCase();
+    const achievementsAvatar = document.getElementById('achievements-avatar');
+    if (achievementsAvatar) { achievementsAvatar.textContent = u.name[0].toUpperCase(); }
 
     const total = activeHabits.length;
     const done  = completedTodayIds.filter(id => activeHabits.some(h => String(h.id) === id)).length;
@@ -1273,25 +1417,43 @@ function renderHome() {
         const completedYesterdayIds = (state.completions[yesterdayKey] || []).map(String);
 
         list.innerHTML = activeHabits.map(h => {
-            const isDone      = completedTodayIds.includes(String(h.id));
-            const streak      = state.streaks[h.id] || 0;
-            const isAtRisk    = streak >= 3 && !isDone;
-            const isGraceDay  = streak > 0 && !isDone && !completedYesterdayIds.includes(String(h.id));
-            const streakClass = isGraceDay ? 'grace-day-text' : (isAtRisk ? 'at-risk-text' : '');
-            const streakSuffix = isGraceDay
-                ? ' · grace day active'
-                : (isAtRisk ? ' · ⚠️ at risk!' : '');
-            const streakHtml = streak > 0
-                ? `<div class="habit-streak ${streakClass}">${getStreakEmoji(streak)} ${streak} day streak${streakSuffix}</div>`
-                : '';
+            const isDone       = completedTodayIds.includes(String(h.id));
+            const streak       = state.streaks[h.id] || 0;
+            const sd           = (state.streakData || {})[h.id] || { value: streak, unit: 'days', graceDayActive: false };
+            const isFrequency  = (h.targetDaysPerWeek || 7) < 7;
+            const isAtRisk     = streak >= 3 && !isDone && !isFrequency;
+            const isGraceDay   = sd.graceDayActive;
+            const streakClass  = isGraceDay ? 'grace-day-text' : (isAtRisk ? 'at-risk-text' : '');
+
+            let streakHtml = '';
+            if (isFrequency) {
+                // Show weekly progress for frequency habits
+                const weekStart = (() => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d; })();
+                const weekDone = Object.entries(state.completions)
+                    .filter(([date]) => new Date(date) >= weekStart)
+                    .reduce((count, [, ids]) => count + (ids.map(String).includes(String(h.id)) ? 1 : 0), 0);
+                const target = h.targetDaysPerWeek || 7;
+                const weekMet = weekDone >= target;
+                const weekSuffix = weekMet ? ' ✓' : '';
+                const freqClass = isGraceDay ? 'grace-day-text' : (weekMet ? '' : '');
+                const freqStreakPart = sd.value > 0 ? ` · ${sd.value}w streak` : '';
+                streakHtml = `<div class="habit-streak ${freqClass}">${weekDone}/${target} this week${weekSuffix}${freqStreakPart}</div>`;
+            } else if (streak > 0) {
+                const streakSuffix = isGraceDay
+                    ? ' · grace day active'
+                    : (isAtRisk ? ' · ⚠️ at risk!' : '');
+                streakHtml = `<div class="habit-streak ${streakClass}">${getStreakEmoji(streak)} ${streak} day streak${streakSuffix}</div>`;
+            }
+
             const isStreakHigh = streak >= 7;
             const habitColor = h.color || '#a78bfa';
+            const freqLabel = isFrequency ? `${h.targetDaysPerWeek}x/wk · ` : '';
             return `
             <div class="habit-item ${isDone ? 'completed' : ''} ${isAtRisk ? 'at-risk' : ''} ${isStreakHigh ? 'streak-high' : ''}" id="item-${h.id}" style="${isStreakHigh ? '--habit-color:' + habitColor + ';' : ''}" onclick="toggleHabit('${h.id}')">
                 <div class="habit-icon-wrap" style="background:${h.color}" onclick="event.stopPropagation(); showHabitDetail('${h.id}')">${h.emoji}</div>
                 <div class="habit-info" onclick="event.stopPropagation(); showHabitDetail('${h.id}')">
                     <div class="habit-name">${h.name}</div>
-                    <div class="habit-meta">${h.duration || 'Daily'} · ${capitalize(h.time)}</div>
+                    <div class="habit-meta">${freqLabel}${h.duration || (isFrequency ? 'Weekly' : 'Daily')} · ${capitalize(h.time)}</div>
                     ${streakHtml}
                 </div>
                 <div class="habit-check"></div>
@@ -1339,13 +1501,32 @@ async function toggleHabit(id) {
         if (!state.bestStreaks[id] || result.streak > state.bestStreaks[id]) {
             state.bestStreaks[id] = result.streak;
         }
+        if (result.streakData) {
+            state.streakData[id] = result.streakData;
+        }
         saveLocal();
         if (result.milestone && !wasCompleted) {
-            setTimeout(() => showMilestone(result.milestone), 700);
+            const milestoneUnit = result.streakData ? result.streakData.unit : 'days';
+            setTimeout(() => showMilestone(result.milestone, milestoneUnit), 700);
+        }
+        // Achievement unlock celebration (only when not already showing milestone)
+        if (result.achievement && !wasCompleted) {
+            const delay = result.milestone ? 4000 : 700;
+            setTimeout(() => showAchievementCelebration(result.achievement), delay);
+        }
+        // Update local achievements list
+        if (result.achievement && !wasCompleted) {
+            const alreadyHas = (state.achievements || []).some(a => a.code === result.achievement.code);
+            if (!alreadyHas) {
+                state.achievements = state.achievements || [];
+                state.achievements.push({ code: result.achievement.code, unlocked_at: new Date().toISOString().replace('T', ' ').slice(0, 19) });
+                saveLocal();
+            }
         }
         // After successful completion, offer to add a note
         if (!wasCompleted) {
-            setTimeout(() => openNoteSheet(id), 1200);
+            const noteDelay = (result.milestone || result.achievement) ? 5500 : 1200;
+            setTimeout(() => openNoteSheet(id), noteDelay);
         }
     } catch(e) { /* keep optimistic */ }
 }
@@ -1369,6 +1550,15 @@ function getMilestoneBadge(streak) {
     if (streak >= 21)  { return '💪 Committed — 21 days'; }
     if (streak >= 14)  { return '🔥 On Fire — 14 days'; }
     if (streak >= 7)   { return '✨ Consistent — 7 days'; }
+    return null;
+}
+
+function getMilestoneBadgeWeekly(weeks) {
+    if (weeks >= 52) { return '👑 Year Legend — 52 weeks'; }
+    if (weeks >= 26) { return '🏆 Half Year — 26 weeks'; }
+    if (weeks >= 13) { return '💎 Quarter — 13 weeks'; }
+    if (weeks >= 9)  { return '💪 66-Day Zone — 9 weeks'; }
+    if (weeks >= 4)  { return '✨ First Month — 4 weeks'; }
     return null;
 }
 
@@ -1401,25 +1591,36 @@ function showHabitDetail(id) {
     if (!habit) { return; }
 
     const streak      = state.streaks[id] || 0;
-    const bestStreak  = Math.max(state.bestStreaks[id] || 0, streak);
+    const sd          = state.streakData[id] || { value: streak, unit: 'days', graceDayActive: false };
+    const bsd         = state.bestStreakData[id] || { value: state.bestStreaks[id] || 0, unit: sd.unit };
+    const bestStreak  = Math.max(bsd.value, sd.value);
     const todayDone   = (state.completions[today()] || []).map(String).includes(String(id));
     const rate30      = calcCompletionRate(id, 30);
     const totalDone   = calcTotalCompletions(id);
+    const streakUnit  = sd.unit;
 
     document.getElementById('detail-title').textContent       = `${habit.emoji} ${habit.name}`;
-    document.getElementById('detail-fire').textContent        = streak > 0 ? getStreakEmoji(streak) : '💤';
-    document.getElementById('detail-streak-num').textContent  = streak;
+    document.getElementById('detail-fire').textContent        = streak > 0 ? (streakUnit === 'weeks' ? '📅🔥' : getStreakEmoji(streak)) : '💤';
+    document.getElementById('detail-streak-num').textContent  = sd.value;
     document.getElementById('detail-best').textContent        = bestStreak;
     document.getElementById('detail-total').textContent       = totalDone;
     document.getElementById('detail-rate').textContent        = rate30 + '%';
 
-    const badge    = getMilestoneBadge(streak);
+    // Update the "days" label below streak number to reflect unit
+    const streakLabelEl = document.querySelector('.streak-label');
+    if (streakLabelEl) {
+        streakLabelEl.textContent = streakUnit === 'weeks' ? 'week streak' : 'day streak';
+    }
+
+    const badge    = streakUnit === 'weeks' ? getMilestoneBadgeWeekly(sd.value) : getMilestoneBadge(streak);
     const badgeEl  = document.getElementById('detail-milestone');
     if (badge) { badgeEl.textContent = badge; badgeEl.style.display = 'inline-flex'; }
     else        { badgeEl.style.display = 'none'; }
 
     renderDetailHeatmap(id);
-    document.getElementById('detail-insight').innerHTML = getInsightMessage(streak, habit.name);
+    document.getElementById('detail-insight').innerHTML = streakUnit === 'weeks'
+        ? getInsightMessageWeekly(sd.value, habit.name)
+        : getInsightMessage(streak, habit.name);
 
     // Display phase information if available
     if (habit.phase) {
@@ -1475,7 +1676,34 @@ function showHabitDetail(id) {
 function renderDetailHeatmap(id) {
     const container = document.getElementById('detail-heatmap');
     const todayStr  = today();
+    const habit     = state.habits.find(h => String(h.id) === String(id));
+    const isFreq    = habit && (habit.targetDaysPerWeek || 7) < 7;
+    const target    = habit ? (habit.targetDaysPerWeek || 7) : 7;
     const weeks     = [];
+
+    // Pre-compute per-week completion counts for frequency habits
+    const weekCounts = {};
+    if (isFreq) {
+        for (let w = 0; w < 12; w++) {
+            const anchorDate = new Date();
+            anchorDate.setDate(anchorDate.getDate() - (11 - w) * 7 - 6);
+            const weekStart = new Date(anchorDate);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            weekStart.setHours(0, 0, 0, 0);
+            const weekKey = weekStart.toISOString().slice(0, 10);
+            if (!weekCounts[weekKey]) {
+                weekCounts[weekKey] = 0;
+                for (let d = 0; d < 7; d++) {
+                    const wd = new Date(weekStart);
+                    wd.setDate(wd.getDate() + d);
+                    const wdStr = wd.toISOString().slice(0, 10);
+                    if ((state.completions[wdStr] || []).map(String).includes(String(id))) {
+                        weekCounts[weekKey]++;
+                    }
+                }
+            }
+        }
+    }
 
     for (let w = 0; w < 12; w++) {
         const col = [];
@@ -1484,18 +1712,32 @@ function renderDetailHeatmap(id) {
             const date   = new Date();
             date.setDate(date.getDate() - offset);
             const dateStr = date.toISOString().slice(0, 10);
-            col.push({
-                date:    dateStr,
-                done:    (state.completions[dateStr] || []).map(String).includes(String(id)),
-                isToday: dateStr === todayStr,
-            });
+            const done = (state.completions[dateStr] || []).map(String).includes(String(id));
+
+            let cellClass = '';
+            if (done) {
+                cellClass = 'done';
+            } else if (isFreq) {
+                // Find the week start for this cell
+                const weekStart = new Date(date);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                weekStart.setHours(0, 0, 0, 0);
+                const weekKey = weekStart.toISOString().slice(0, 10);
+                const wCount = weekCounts[weekKey] || 0;
+                cellClass = wCount >= target ? 'neutral' : 'missed';
+            } else {
+                // Future dates are neutral; past missed dates show as missed
+                cellClass = dateStr > todayStr ? '' : 'missed';
+            }
+
+            col.push({ dateStr, cellClass, isToday: dateStr === todayStr });
         }
         weeks.push(col);
     }
 
     container.innerHTML = weeks.map(col =>
         `<div class="heatmap-col">${col.map(day =>
-            `<div class="heatmap-cell ${day.done ? 'done' : ''} ${day.isToday ? 'today' : ''}"></div>`
+            `<div class="heatmap-cell ${day.cellClass} ${day.isToday ? 'today' : ''}"></div>`
         ).join('')}</div>`
     ).join('');
 }
@@ -1560,6 +1802,25 @@ function getInsightMessage(streak, habitName) {
     return `<strong>You ARE this habit now.</strong> After ${streak} days, this is no longer something you do — it is who you are. James Clear would be proud. Keep the chain alive.`;
 }
 
+function getInsightMessageWeekly(weeks, habitName) {
+    if (weeks === 0) {
+        return `<strong>Start this week.</strong> "Reduce the habit to its minimal version." One week of showing up is all it takes to begin. Start today.`;
+    }
+    if (weeks < 4) {
+        return `<strong>${weeks} week${weeks > 1 ? 's' : ''} in.</strong> Your schedule is adapting. The neural pathway is forming. Consistency over the next few weeks will lock this in.`;
+    }
+    if (weeks < 9) {
+        return `<strong>First month complete!</strong> You've completed ${weeks} weeks. Research from University College London shows you're well on your way to automaticity. Don't stop now.`;
+    }
+    if (weeks < 13) {
+        return `<strong>9 weeks — the 66-day threshold!</strong> Phillippa Lally's research says most habits solidify around 66 days. You've crossed that line. ${habitName} is sticking.`;
+    }
+    if (weeks < 26) {
+        return `<strong>One quarter done!</strong> 13 weeks of ${habitName}. You've proven to yourself that this is who you are — not just something you're trying.`;
+    }
+    return `<strong>You ARE this habit.</strong> ${weeks} weeks of consistency. This is identity-level change. James Clear would call this an atomic habit fully formed.`;
+}
+
 function toggleHabitFromDetail() {
     if (currentDetailHabitId) {
         toggleHabit(currentDetailHabitId);
@@ -1581,6 +1842,8 @@ function deleteHabit(deletedId) {
     });
     delete state.streaks[deletedId];
     delete state.bestStreaks[deletedId];
+    delete state.streakData[deletedId];
+    delete state.bestStreakData[deletedId];
     // Cancel any scheduled reminder for the deleted habit
     const reminders = loadReminders();
     if (reminders[deletedId]) {
@@ -1644,6 +1907,7 @@ function showEditHabit(id) {
     newHabit.diff = habit.diff || 'medium';
     newHabit.categoryId = habit.categoryId || null;
     newHabit.reminderTime = habit.reminderTime || '';
+    newHabit.targetDaysPerWeek = habit.targetDaysPerWeek || 7;
 
     // Update screen chrome for edit mode
     document.getElementById('add-screen-title').textContent = 'Edit Habit';
@@ -1659,7 +1923,7 @@ function showEditHabit(id) {
 //  ADD HABIT FORM
 // ══════════════════════════════════════════
 function resetAddForm() {
-    newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '' };
+    newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
     goStep(0);
     ['new-name','new-why','new-bundle','new-two-min','new-stack','new-duration','new-reward'].forEach(id => {
         const el = document.getElementById(id);
@@ -1676,16 +1940,50 @@ function resetAddForm() {
     renderCategoryPicker();
 }
 
+// Step order: 0 → freq → 1 → 2 → 3
+const STEP_ORDER = [0, 'freq', 1, 2, 3];
+
 function goStep(n) {
     document.getElementById('add-step-' + currentStep).style.display = 'none';
     currentStep = n;
     document.getElementById('add-step-' + n).style.display = 'block';
-    for (let i = 0; i < 4; i++) {
-        const s = document.getElementById('step-' + i);
-        s.classList.toggle('done', i < n);
-        s.classList.toggle('active', i === n);
-    }
+
+    // Map step name to visual indicator index
+    const stepIndicators = [0, 'freq', 1, 2, 3];
+    const activeIdx = stepIndicators.indexOf(n);
+    stepIndicators.forEach((sid, idx) => {
+        const el = document.getElementById('step-' + sid);
+        if (el) {
+            el.classList.toggle('done', idx < activeIdx);
+            el.classList.toggle('active', idx === activeIdx);
+        }
+    });
+
+    // Render frequency grid when entering freq step
+    if (n === 'freq') { renderFrequencyGrid(); }
+
     document.querySelector('.add-body').scrollTo(0, 0);
+}
+
+function renderFrequencyGrid() {
+    const grid = document.getElementById('frequency-grid');
+    if (!grid) { return; }
+    const target = newHabit.targetDaysPerWeek || 7;
+    grid.innerHTML = [1,2,3,4,5,6,7].map(d => {
+        const labels = ['1x','2x','3x','4x','5x','6x','Daily'];
+        const subs   = ['Sun only','Twice','3 days','4 days','5 days','6 days','Every day'];
+        return `<div class="frequency-btn ${d === target ? 'selected' : ''}" onclick="selectFrequency(${d})">
+            <div>${labels[d-1]}</div>
+            <div style="font-size:0.6rem;color:#8B92AB;margin-top:0.2rem;">${subs[d-1]}</div>
+        </div>`;
+    }).join('');
+}
+
+function selectFrequency(days) {
+    newHabit.targetDaysPerWeek = days;
+    document.querySelectorAll('.frequency-btn').forEach(b => b.classList.remove('selected'));
+    const btns = document.querySelectorAll('.frequency-btn');
+    if (btns[days - 1]) { btns[days - 1].classList.add('selected'); }
 }
 
 function selectEmoji(el) {
@@ -1752,6 +2050,7 @@ async function saveHabit() {
         reward:   document.getElementById('new-reward').value.trim(),
         diff:     newHabit.diff,
         categoryId: newHabit.categoryId,
+        targetDaysPerWeek: newHabit.targetDaysPerWeek || 7,
         reminderTime: newHabit.reminderTime,
     };
 
@@ -1780,9 +2079,11 @@ async function saveHabit() {
 
     // Create mode — optimistic add with temp ID
     const tempId    = 'tmp_' + Date.now();
+    const isFreq    = (habitData.targetDaysPerWeek || 7) < 7;
     const tempHabit = { ...habitData, id: tempId, createdAt: today() };
     state.habits.push(tempHabit);
     state.streaks[tempId] = 0;
+    state.streakData[tempId] = { value: 0, unit: isFreq ? 'weeks' : 'days', graceDayActive: false };
     saveLocal();
     showToast(`${habitData.emoji} "${habitData.name}" added! Every rep is a vote.`);
     showScreen('screen-home');
@@ -1793,8 +2094,12 @@ async function saveHabit() {
         const idx = state.habits.findIndex(h => h.id === tempId);
         if (idx !== -1) { state.habits[idx] = result; }
         delete state.streaks[tempId];
+        delete state.streakData[tempId];
         state.streaks[result.id] = 0;
         state.bestStreaks[result.id] = 0;
+        const resIsFreq = (result.targetDaysPerWeek || 7) < 7;
+        state.streakData[result.id] = { value: 0, unit: resIsFreq ? 'weeks' : 'days', graceDayActive: false };
+        state.bestStreakData[result.id] = { value: 0, unit: resIsFreq ? 'weeks' : 'days' };
         saveLocal();
         renderHome();
     } catch(e) { /* keep optimistic */ }
@@ -1848,12 +2153,18 @@ function renderStats() {
         breakdownCard.style.display = 'block';
         breakdown.innerHTML = activeHabits.map(h => {
             const streak = state.streaks[h.id] || 0;
+            const sd = state.streakData[h.id] || { value: streak, unit: 'days' };
             const rate30 = calcCompletionRate(h.id, 30);
+            const streakText = sd.value > 0
+                ? (sd.unit === 'weeks'
+                    ? `📅 ${sd.value} week streak · `
+                    : `${getStreakEmoji(sd.value)} ${sd.value} day streak · `)
+                : '';
             return `<div class="identity-item" onclick="showHabitDetail('${h.id}')">
                 <div class="identity-icon">${h.emoji}</div>
                 <div class="identity-info">
                     <div class="identity-name">${h.name}</div>
-                    <div class="identity-votes">${streak > 0 ? getStreakEmoji(streak) + ' ' + streak + ' day streak · ' : ''}${rate30}% this month</div>
+                    <div class="identity-votes">${streakText}${rate30}% this month</div>
                     <div class="identity-bar"><div class="identity-bar-fill" style="width:${rate30}%"></div></div>
                 </div>
             </div>`;
@@ -2027,8 +2338,11 @@ function calcOverallStreak() {
 // ══════════════════════════════════════════
 //  MILESTONE CELEBRATION
 // ══════════════════════════════════════════
-function showMilestone(days) {
-    const m = MILESTONES.find(x => x.days === days) || MILESTONES[0];
+function showMilestone(value, unit) {
+    const isWeekly = unit === 'weeks';
+    const m = isWeekly
+        ? (WEEKLY_MILESTONES.find(x => x.weeks === value) || WEEKLY_MILESTONES[0])
+        : (MILESTONES.find(x => x.days === value) || MILESTONES[0]);
     document.getElementById('milestone-emoji').textContent = m.emoji;
     document.getElementById('milestone-title').textContent = m.title;
     document.getElementById('milestone-sub').textContent   = m.sub;
@@ -2064,6 +2378,158 @@ function showMilestone(days) {
 function closeMilestone() {
     const overlay = document.getElementById('milestone-overlay');
     overlay.classList.remove('visible');
+}
+
+// ══════════════════════════════════════════
+//  ACHIEVEMENT CELEBRATION
+// ══════════════════════════════════════════
+function showAchievementCelebration(achievement) {
+    const def = ACHIEVEMENTS_DEFS[achievement.code];
+    if (!def) { return; }
+
+    document.getElementById('milestone-emoji').textContent = def.icon;
+    document.getElementById('milestone-title').textContent = def.name + '!';
+    document.getElementById('milestone-sub').textContent   = 'Achievement Unlocked';
+    document.getElementById('milestone-quote').textContent = def.desc;
+
+    const overlay = document.getElementById('milestone-overlay');
+    overlay.classList.add('visible');
+
+    const dismissBtn = document.getElementById('milestone-dismiss-btn');
+    if (dismissBtn) {
+        dismissBtn.textContent = def.prestige ? 'Prestige Earned! 🏆' : 'Unlocked! 🎉';
+        dismissBtn.classList.remove('interactive');
+        setTimeout(() => dismissBtn.classList.add('interactive'), 550);
+    }
+
+    // Confetti with prestige gold colors if applicable
+    const emojiEl = document.getElementById('milestone-emoji');
+    const confettiColors = def.prestige
+        ? ['#F59E0B', '#EAB308', '#FCD34D', '#FBBF24', '#a78bfa']
+        : ['#a78bfa', '#f97316', '#22c55e', '#f59e0b', '#ec4899'];
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'confetti-particle';
+        const tx = (Math.random() * 200 - 100).toFixed(0) + 'px';
+        const ty = (Math.random() * 200 - 100).toFixed(0) + 'px';
+        particle.style.cssText = `--tx:${tx}; --ty:${ty}; background:${confettiColors[i % confettiColors.length]}; left:50%; top:50%; margin-left:-4px; margin-top:-4px;`;
+        emojiEl.appendChild(particle);
+    }
+    setTimeout(() => emojiEl.querySelectorAll('.confetti-particle').forEach(p => p.remove()), 600);
+}
+
+// ══════════════════════════════════════════
+//  ACHIEVEMENTS SCREEN
+// ══════════════════════════════════════════
+function getWeekStart(date) {
+    const d = new Date(date);
+    d.setDate(d.getDate() - d.getDay());
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function renderAchievements() {
+    if (!state.user) { return; }
+
+    const easyList      = document.getElementById('easy-achievements-list');
+    const prestigeList  = document.getElementById('prestige-achievements-list');
+    const emptyState    = document.getElementById('achievements-empty-state');
+    const easySection   = document.getElementById('easy-achievements-section');
+    const prestigeSection = document.getElementById('prestige-achievements-section');
+
+    easyList.innerHTML = '';
+    prestigeList.innerHTML = '';
+
+    const unlockedCount = (state.achievements || []).length;
+    emptyState.style.display = unlockedCount === 0 ? 'block' : 'none';
+    easySection.style.display = 'block';
+    prestigeSection.style.display = 'block';
+
+    Object.entries(ACHIEVEMENTS_DEFS).forEach(([code, def]) => {
+        const unlocked = (state.achievements || []).some(a => a.code === code);
+        const card = createAchievementCard(code, def, unlocked);
+        if (def.prestige) {
+            prestigeList.appendChild(card);
+        } else {
+            easyList.appendChild(card);
+        }
+    });
+}
+
+function createAchievementCard(code, def, unlocked) {
+    const card = document.createElement('div');
+    card.className = `achievement-card ${unlocked ? 'unlocked' : 'locked'} ${def.prestige ? 'prestige' : ''}`;
+
+    let progressHtml = '';
+    let earnedHtml   = '';
+
+    if (unlocked) {
+        const record = (state.achievements || []).find(a => a.code === code);
+        const earnedDate = record ? new Date(record.unlocked_at).toLocaleDateString() : '';
+        earnedHtml = `<div class="achievement-earned">Earned ${earnedDate}</div>`;
+    } else {
+        // Progress bars for trackable achievements
+        let progress = null;
+
+        if (code === 'perfect_week') {
+            const weekStart = getWeekStart(new Date());
+            const weekEnd   = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+            let weekDays = 0;
+            const totalHabits = state.habits.length;
+            if (totalHabits > 0) {
+                const cursor = new Date(weekStart);
+                while (cursor < weekEnd && cursor <= new Date()) {
+                    const key = cursor.toISOString().slice(0, 10);
+                    const completedToday = (state.completions[key] || []).filter(id =>
+                        state.habits.some(h => String(h.id) === String(id))
+                    ).length;
+                    if (completedToday >= totalHabits) { weekDays++; }
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+            }
+            progress = { current: weekDays, max: 7 };
+
+        } else if (code === 'habit_builder') {
+            progress = { current: state.habits.length, max: 5 };
+
+        } else if (code === 'one_percent_club') {
+            const maxStreak = state.habits.length > 0
+                ? Math.max(...state.habits.map(h => state.streaks[h.id] || 0))
+                : 0;
+            progress = { current: maxStreak, max: 365 };
+
+        } else if (code === 'perfect_quarter') {
+            const habit = state.habits.length > 0
+                ? state.habits.reduce((best, h) => (state.streaks[h.id] || 0) > (state.streaks[best.id] || 0) ? h : best)
+                : null;
+            const maxStreak = habit ? (state.streaks[habit.id] || 0) : 0;
+            progress = { current: Math.min(maxStreak, 90), max: 90 };
+        }
+
+        if (progress) {
+            const pct = Math.round((progress.current / progress.max) * 100);
+            progressHtml = `
+                <div class="achievement-progress-wrap">
+                    <div class="achievement-progress-label">${progress.current}/${progress.max}</div>
+                    <div class="achievement-progress-bar">
+                        <div class="achievement-progress-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+        }
+    }
+
+    const prestigeTag = def.prestige && unlocked ? `<span class="prestige-tag">PRESTIGE</span>` : '';
+
+    card.innerHTML = `
+        <div class="achievement-icon">${def.icon}</div>
+        <div class="achievement-info">
+            <div class="achievement-name">${def.name}${prestigeTag}</div>
+            <div class="achievement-desc">${def.desc}</div>
+            ${unlocked ? earnedHtml : `<div class="achievement-criteria">${def.criteria}</div>`}
+            ${progressHtml}
+        </div>`;
+
+    return card;
 }
 
 // ══════════════════════════════════════════
@@ -2611,7 +3077,7 @@ async function confirmResetData() {
     localStorage.removeItem('atomicme_v3');
     localStorage.removeItem('atomicme_reminders');
     localStorage.removeItem('atomicme_last_reviewed_week');
-    state = { user: null, habits: [], completions: {}, streaks: {}, bestStreaks: {} };
+    state = { user: null, habits: [], completions: {}, streaks: {}, bestStreaks: {}, achievements: [] };
 
     closeProfileSheet();
     showScreen('screen-onboarding');

@@ -17,6 +17,10 @@ class HabitController extends Controller
             'color' => ['required', 'string'],
         ]);
 
+        $request->validate([
+            'targetDaysPerWeek' => ['nullable', 'integer', 'min:1', 'max:7'],
+        ]);
+
         $habit = Habit::create([
             'name' => $request->name,
             'emoji' => $request->emoji,
@@ -31,6 +35,7 @@ class HabitController extends Controller
             'difficulty' => $request->input('diff', 'medium'),
             'category_id' => $request->input('categoryId'),
             'reminder_time' => $request->input('reminderTime'),
+            'target_days_per_week' => $request->input('targetDaysPerWeek', 7),
         ]);
 
         return response()->json($habit->toApiArray(), 201);
@@ -58,6 +63,7 @@ class HabitController extends Controller
             'difficulty' => $request->input('diff', $habit->difficulty),
             'category_id' => $request->input('categoryId', $habit->category_id),
             'reminder_time' => $request->input('reminderTime', $habit->reminder_time),
+            'target_days_per_week' => $request->input('targetDaysPerWeek', $habit->target_days_per_week),
         ]);
 
         return response()->json($habit->fresh()->toApiArray());
