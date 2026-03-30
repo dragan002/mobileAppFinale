@@ -2625,152 +2625,61 @@ function maybeRequestNotificationPermissionAfterOnboarding() {
 // ══════════════════════════════════════════
 
 /**
- * Return the ISO date string for the most recent Monday (start of current week).
- * Used as the `week_of` key for weekly reflection records.
- *
- * @@returns {string}  ISO date string e.g. `"2026-03-30"`.
- */
-function currentWeekOf() {
-    const d = new Date();
-    const day = d.getDay(); // 0 = Sunday, 1 = Monday, ...
-    const diff = (day === 0) ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().slice(0, 10);
-}
-
-/**
- * Load the last reviewed week ISO date string from localStorage.
- *
- * @@returns {string|null}
- */
-function loadLastReviewedWeek() {
-    try { return localStorage.getItem('atomicme_last_reviewed_week') || null; } catch(e) { return null; }
-}
-
-/**
- * Persist the reviewed week date to localStorage.
- *
- * @@param {string} weekOf  ISO date string for the week start.
- * @@returns {void}
- */
-function saveLastReviewedWeek(weekOf) {
-    try { localStorage.setItem('atomicme_last_reviewed_week', weekOf); } catch(e) {}
-}
-
-/**
- * Determine whether the weekly review overlay should appear.
- * Shows on Sunday or if it has been 7+ days since the last review.
- *
- * @@returns {boolean}
- */
-function shouldShowWeeklyReview() {
-    if (!state.user || state.habits.length === 0) { return false; }
-
-    const thisWeek = currentWeekOf();
-    const lastReviewed = loadLastReviewedWeek();
-
-    // Already reviewed or skipped this week — do not show again.
-    if (lastReviewed === thisWeek) { return false; }
-
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 = Sunday
-
-    // Show on Sunday (day 0) or if it has been 7+ days since last review.
-    if (dayOfWeek === 0) { return true; }
-
-    if (lastReviewed) {
-        const lastDate = new Date(lastReviewed);
-        const daysSince = Math.floor((now - lastDate) / 86400000);
-        if (daysSince >= 7) { return true; }
-    }
-
-    return false;
-}
-
-/**
- * Show the weekly review overlay if `shouldShowWeeklyReview()` returns true.
+ * Show the weekly review overlay if conditions are met.
  * Delayed 1.2 s so the home screen renders first.
+ * Delegates condition check and display to App.overlays.weeklyReview.
  *
  * @@returns {void}
  */
 function maybeShowWeeklyReview() {
-    if (!shouldShowWeeklyReview()) { return; }
-    // Delay so it appears after home renders.
-    setTimeout(openWeeklyReview, 1200);
+    if (!window.App) { return; }
+    if (!App.overlays.weeklyReview.shouldShowWeeklyReview(state)) { return; }
+    setTimeout(() => App.overlays.weeklyReview.openWeeklyReview(state), 1200);
 }
 
 /**
- * Open the weekly review overlay and populate the habit completion summary
- * for the current week.
+ * Open the weekly review overlay. Delegates to module.
  *
  * @@returns {void}
  */
 function openWeeklyReview() {
-    if (!state.user) { return; }
-
-    // Build the weekly habit completion summary.
-    const weekOf = currentWeekOf();
-    const weekStart = new Date(weekOf);
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(weekStart);
-        d.setDate(weekStart.getDate() + i);
-        days.push(d.toISOString().slice(0, 10));
-    }
-
-    const listEl = document.getElementById('wr-habit-list');
-    listEl.innerHTML = '';
-
-    state.habits.forEach(habit => {
-        const doneCount = days.filter(d => (state.completions[d] || []).some(id => String(id) === String(habit.id))).length;
-        const pct = Math.round((doneCount / 7) * 100);
-        const pctClass = pct >= 71 ? 'good' : pct >= 43 ? 'ok' : 'low';
-        const row = document.createElement('div');
-        row.className = 'wr-habit-row';
-        row.innerHTML = `
-            <div class="wr-habit-left"><span>${habit.emoji}</span><span>${habit.name}</span></div>
-            <div class="wr-habit-pct ${pctClass}">${doneCount}/7 days</div>
-        `;
-        listEl.appendChild(row);
-    });
-
-    document.getElementById('wr-note').value = '';
-    document.getElementById('weekly-review-overlay').classList.add('show');
+    if (window.App) { App.overlays.weeklyReview.openWeeklyReview(state); }
 }
 
 /**
- * Close the weekly review overlay without saving.
+ * Close the weekly review overlay. Delegates to module.
  *
  * @@returns {void}
  */
 function closeWeeklyReview() {
-    document.getElementById('weekly-review-overlay').classList.remove('show');
+    if (window.App) { App.overlays.weeklyReview.closeWeeklyReview(); }
 }
 
 /**
  * Skip the weekly review: mark this week as reviewed and close the overlay.
+ * Delegates skip logic to module; shows toast inline.
  *
  * @@returns {void}
  */
 function skipWeeklyReview() {
-    saveLastReviewedWeek(currentWeekOf());
-    closeWeeklyReview();
+    if (window.App) { App.overlays.weeklyReview.skipWeeklyReview(); }
     showToast('Review skipped. See you next week!');
 }
 
 /**
- * Save the weekly reflection note. Optimistically dismisses the overlay and
- * marks the week as reviewed, then POSTs to `/api/reflections` in the background.
+ * Save the weekly reflection note. Reads note via module helper, applies
+ * optimistic dismiss, then POSTs to `/api/reflections` in the background.
  *
  * @@returns {Promise<void>}
  */
 async function saveWeeklyReview() {
-    const note = document.getElementById('wr-note').value.trim();
-    const weekOf = currentWeekOf();
+    if (!window.App) { return; }
+    const note   = App.overlays.weeklyReview.readReviewNote();
+    const weekOf = App.overlays.weeklyReview.currentWeekOf();
 
     // Optimistic dismiss.
-    saveLastReviewedWeek(weekOf);
-    closeWeeklyReview();
+    App.overlays.weeklyReview.saveLastReviewedWeek(weekOf);
+    App.overlays.weeklyReview.closeWeeklyReview();
     showToast('Reflection saved!', 'purple');
 
     try {
@@ -2782,123 +2691,64 @@ async function saveWeeklyReview() {
 //  PROFILE SHEET
 // ══════════════════════════════════════════
 
-/** @type {string|null} Currently selected identity key in the profile edit form. */
-let profileSelectedIdentity = null;
-
 /**
- * Open the Profile Sheet, computing and populating all stats sections
- * (days using app, total completions, longest streak, identity votes).
+ * Open the Profile Sheet. Delegates to App.overlays.profileSheet module.
  *
  * @@returns {void}
  */
 function openProfileSheet() {
-    if (!state.user) { return; }
-    const u = state.user;
-
-    // Compute stats
-    const identityData = IDENTITY_MAP[u.identity] || { label: u.identityLabel, icon: u.identityIcon };
-
-    // Days using the app: diff between earliest completion date OR user createdAt and today
-    let earliestDate = null;
-    Object.keys(state.completions).forEach(dateKey => {
-        if (state.completions[dateKey].length > 0) {
-            if (!earliestDate || dateKey < earliestDate) { earliestDate = dateKey; }
-        }
-    });
-    let daysUsing = 0;
-    if (earliestDate) {
-        const start = new Date(earliestDate);
-        const now   = new Date();
-        daysUsing = Math.max(1, Math.round((now - start) / 86400000) + 1);
-    } else if (u.createdAt) {
-        const start = new Date(u.createdAt);
-        const now   = new Date();
-        daysUsing = Math.max(1, Math.round((now - start) / 86400000) + 1);
-    } else {
-        daysUsing = 1;
-    }
-
-    // Total completions across all habits
-    let totalCompletions = 0;
-    Object.values(state.completions).forEach(arr => { totalCompletions += arr.length; });
-
-    // Longest streak across all habits
-    const longestStreak = state.habits.length > 0
-        ? Math.max(...state.habits.map(h => Math.max(state.bestStreaks[h.id] || 0, state.streaks[h.id] || 0)))
-        : 0;
-
-    // Populate identity dashboard
-    document.getElementById('ps-identity-icon').textContent  = identityData.icon;
-    document.getElementById('ps-user-name').textContent      = u.name;
-    document.getElementById('ps-identity-label').textContent = identityData.label;
-    document.getElementById('ps-days-using').textContent     = daysUsing;
-    document.getElementById('ps-total-completions').textContent = totalCompletions;
-    document.getElementById('ps-best-streak').textContent    = longestStreak;
-    document.getElementById('ps-votes-count').textContent    = totalCompletions;
-    document.getElementById('ps-votes-identity').textContent = identityData.label;
-
-    // Populate edit form
-    document.getElementById('ps-name-input').value = u.name;
-    profileSelectedIdentity = u.identity;
-    document.querySelectorAll('.profile-identity-option').forEach(el => {
-        el.classList.toggle('selected', el.dataset.id === u.identity);
-    });
-
-    // Show sheet
-    document.getElementById('profile-sheet-backdrop').classList.add('show');
-    document.getElementById('profile-sheet').classList.add('show');
+    if (window.App) { App.overlays.profileSheet.openProfileSheet(state); }
 }
 
 /**
- * Close the Profile Sheet and its backdrop.
+ * Close the Profile Sheet and its backdrop. Delegates to module.
  *
  * @@returns {void}
  */
 function closeProfileSheet() {
-    document.getElementById('profile-sheet-backdrop').classList.remove('show');
-    document.getElementById('profile-sheet').classList.remove('show');
+    if (window.App) { App.overlays.profileSheet.closeProfileSheet(); }
 }
 
 /**
- * Select an identity option in the Profile Sheet edit form.
+ * Select an identity option in the Profile Sheet edit form. Delegates to module.
  *
  * @@param {HTMLElement} el  The clicked identity option element.
  * @@returns {void}
  */
 function selectProfileIdentity(el) {
-    document.querySelectorAll('.profile-identity-option').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    profileSelectedIdentity = el.dataset.id;
+    if (window.App) { App.overlays.profileSheet.selectProfileIdentity(el); }
 }
 
 /**
- * Save profile edits (name + identity). Optimistically updates state and UI,
- * then POSTs to `/api/setup` in the background.
+ * Save profile edits (name + identity). Reads form values via module helpers,
+ * applies optimistic state update, then syncs to backend.
  *
  * @@returns {Promise<void>}
  */
 async function saveProfileChanges() {
-    const name = document.getElementById('ps-name-input').value.trim();
-    if (!name) { showToast('Please enter your name.'); return; }
-    if (!profileSelectedIdentity) { showToast('Please choose an identity.'); return; }
+    if (!window.App) { return; }
+    const profileData = App.overlays.profileSheet.readProfileForm();
+    if (!profileData) {
+        if (!document.getElementById('ps-name-input')?.value.trim()) {
+            showToast('Please enter your name.');
+        } else {
+            showToast('Please choose an identity.');
+        }
+        return;
+    }
 
-    const identity = IDENTITY_MAP[profileSelectedIdentity];
+    const { name, identity, identityLabel, identityIcon } = profileData;
 
     // Optimistic update
-    state.user = { ...state.user, name, identity: profileSelectedIdentity, identityLabel: identity.label, identityIcon: identity.icon };
+    state.user = { ...state.user, name, identity, identityLabel, identityIcon };
     saveLocal();
     renderHome();
     closeProfileSheet();
-    showToast(`Profile updated! You are ${identity.label}.`, 'purple');
+    showToast(`Profile updated! You are ${identityLabel}.`, 'purple');
 
     // Sync to backend
     try {
-        await api('POST', '/api/setup', {
-            name,
-            identity: profileSelectedIdentity,
-            identityLabel: identity.label,
-            identityIcon: identity.icon,
-        });
+        await api('POST', '/api/setup', { name, identity, identityLabel, identityIcon });
     } catch(e) { /* keep optimistic state */ }
 }
 
@@ -2941,44 +2791,38 @@ document.getElementById('delete-sheet-confirm').addEventListener('click', () => 
 //  NOTE SHEET
 // ══════════════════════════════════════════
 
-/** @type {Object|null} Data for the note sheet: { habitId } while open, null when closed. */
-let pendingNoteData = null;
-
 /**
- * Open the completion note input sheet for a habit.
+ * Open the completion note input sheet for a habit. Delegates to module.
  *
  * @@param {string|number} habitId  Habit the note is associated with.
  * @@returns {void}
  */
 function openNoteSheet(habitId) {
-    pendingNoteData = { habitId };
-    document.getElementById('note-input').value = '';
-    document.getElementById('note-sheet-backdrop').style.display = 'block';
-    document.getElementById('note-sheet').style.display = 'flex';
+    if (window.App) { App.overlays.noteSheet.openNoteSheet(habitId); }
 }
 
 /**
- * Close the note sheet without saving.
+ * Close the note sheet without saving. Delegates to module.
  *
  * @@returns {void}
  */
 function closeNoteSheet() {
-    pendingNoteData = null;
-    document.getElementById('note-sheet-backdrop').style.display = 'none';
-    document.getElementById('note-sheet').style.display = 'none';
+    if (window.App) { App.overlays.noteSheet.closeNoteSheet(); }
 }
 
 /**
- * Save the completion note from the note sheet. Optimistically updates
- * `state.completionNotes`, closes the sheet, then POSTs to `/api/completions/note`.
+ * Save the completion note from the note sheet. Reads habit ID and note text
+ * via module helpers, optimistically updates `state.completionNotes`, closes
+ * the sheet, then POSTs to `/api/completions/note` in the background.
  *
  * @@returns {Promise<void>}
  */
 async function saveNote() {
-    if (!pendingNoteData) { return; }
+    if (!window.App) { return; }
+    const habitId = App.overlays.noteSheet.getPendingHabitId();
+    if (!habitId) { return; }
 
-    const note = document.getElementById('note-input').value.trim();
-    const { habitId } = pendingNoteData;
+    const note = App.overlays.noteSheet.readNoteValue();
 
     if (!note) {
         closeNoteSheet();
