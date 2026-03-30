@@ -1,0 +1,76 @@
+/**
+ * AtomicMe — Design Tokens
+ *
+ * Single source of truth for all colours, radii, and shadows used in the app.
+ * Declared as CSS custom properties on :root so they are available to every
+ * element including inline styles via var().
+ *
+ * HOW TO USE IN INLINE STYLES (welcome.blade.php):
+ *   Old: style="background: #7c3aed"
+ *   New: style="background: var(--color-primary)"
+ *
+ * HOW TO USE IN STYLESHEET RULES:
+ *   .btn-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); }
+ */
+
+:root {
+    /* ── BRAND GRADIENTS ── */
+    --gradient-primary:     linear-gradient(135deg, #7c3aed, #db2777);
+    --gradient-purple-pink: linear-gradient(135deg, #a78bfa, #ec4899);
+    --gradient-dark-bg:     linear-gradient(160deg, #0F1221 0%, #1a0a2e 100%);
+    --gradient-progress:    linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #db2777 100%);
+    --gradient-bar:         linear-gradient(to top, #7c3aed, #db2777);
+
+    /* ── PRIMARY PALETTE ── */
+    --color-primary:        #7c3aed;   /* violet-700 */
+    --color-primary-light:  #A855F7;   /* purple-500 */
+    --color-primary-dim:    #C084FC;   /* purple-400 */
+    --color-accent:         #db2777;   /* pink-600 */
+
+    /* ── SEMANTIC COLOURS ── */
+    --color-success:        #34D399;   /* emerald-400 */
+    --color-success-bg:     #0d1a14;
+    --color-success-border: #1a3024;
+    --color-danger:         #ef4444;   /* red-500 */
+    --color-danger-dim:     #ef444444;
+    --color-warning:        #f97316;   /* orange-500 */
+    --color-warning-dim:    #f9731640;
+    --color-gold:           #F59E0B;   /* amber-500 */
+
+    /* ── BACKGROUND LAYERS ── */
+    --bg-page:              #0F1221;
+    --bg-card:              #1A1F35;
+    --bg-element:           #242B45;
+    --bg-deep:              #151929;
+
+    /* ── BORDERS ── */
+    --border-subtle:        #2A3152;
+    --border-faint:         #1E2338;
+
+    /* ── TEXT ── */
+    --text-primary:         #EAEDF6;
+    --text-muted:           #8B92AB;
+    --text-faint:           #5A6180;
+    --text-mid:             #A3A8C1;
+
+    /* ── STREAKS ── */
+    --color-streak:         #f97316;   /* orange streak text */
+    --color-grace-day:      #A855F7;   /* purple grace-day text */
+
+    /* ── RADII ── */
+    --radius-sm:            0.5rem;
+    --radius-md:            0.75rem;
+    --radius-lg:            1rem;
+    --radius-xl:            1.25rem;
+    --radius-2xl:           1.5rem;
+    --radius-full:          999px;
+
+    /* ── SHADOWS / GLOWS ── */
+    --glow-progress-bar: 0 0 8px rgba(192, 132, 252, 0.4), 0 0 16px rgba(168, 85, 247, 0.2);
+
+    /* ── ANIMATION TIMING ── */
+    --transition-fast:  150ms;
+    --transition-base:  200ms;
+    --transition-slow:  300ms;
+    --transition-sheet: 350ms cubic-bezier(0.33, 1, 0.68, 1);
+}

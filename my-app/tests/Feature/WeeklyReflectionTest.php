@@ -6,7 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function makeUser(): UserProfile
+function makeReflectionUser(): UserProfile
 {
     return UserProfile::create([
         'name' => 'Test User',
@@ -18,7 +18,7 @@ function makeUser(): UserProfile
 
 describe('POST /api/reflections', function () {
     it('stores a new reflection for the current week', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'week_of' => '2026-03-23',
@@ -34,7 +34,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('upserts when a reflection for that week already exists', function () {
-        $user = makeUser();
+        $user = makeReflectionUser();
 
         WeeklyReflection::create([
             'user_profile_id' => $user->id,
@@ -56,7 +56,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('stores a reflection with an empty note', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'week_of' => '2026-03-23',
@@ -69,7 +69,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('stores a reflection when note is omitted', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'week_of' => '2026-03-23',
@@ -79,7 +79,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('returns 422 when week_of is missing', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'note' => 'Missing date.',
@@ -89,7 +89,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('returns 422 when week_of is not a valid date', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'week_of' => 'not-a-date',
@@ -109,7 +109,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('returns 422 when note exceeds 2000 characters', function () {
-        makeUser();
+        makeReflectionUser();
 
         $response = $this->postJson('/api/reflections', [
             'week_of' => '2026-03-23',
@@ -120,7 +120,7 @@ describe('POST /api/reflections', function () {
     });
 
     it('stores separate reflections for different weeks', function () {
-        makeUser();
+        makeReflectionUser();
 
         $this->postJson('/api/reflections', ['week_of' => '2026-03-16', 'note' => 'Week 1']);
         $this->postJson('/api/reflections', ['week_of' => '2026-03-23', 'note' => 'Week 2']);

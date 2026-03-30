@@ -243,7 +243,7 @@
         /* ── STATS SCREEN ── */
         #screen-stats { background: #0F1221; }
         .stats-section { padding: 0 1.25rem 1.25rem; overflow-x: hidden; }
-        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; }
+        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; overflow: hidden; }
         .stats-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 1rem; }
         .compound-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; }
         .compound-bar { flex: 1; min-width: 0; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; }
@@ -264,8 +264,8 @@
         .identity-info { flex: 1; min-width: 0; }
         .identity-name { font-size: 0.875rem; font-weight: 600; }
         .identity-votes { font-size: 0.72rem; color: #8B92AB; margin-top: 0.15rem; }
-        .identity-bar { height: 4px; background: #242B45; border-radius: 999px; margin-top: 0.5rem; }
-        .identity-bar-fill { height: 4px; background: linear-gradient(135deg, #7c3aed, #db2777); border-radius: 999px; transition: width .6s ease; }
+        .identity-bar { height: 4px; background: #242B45; border-radius: 999px; margin-top: 0.5rem; overflow: hidden; }
+        .identity-bar-fill { height: 4px; background: linear-gradient(135deg, #7c3aed, #db2777); border-radius: 999px; transition: width .6s ease; max-width: 100%; }
         .weekly-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
         .week-day { text-align: center; }
         .week-day-label { font-size: 0.7rem; color: #A3A8C1; font-weight: 500; margin-bottom: 0.4rem; }
@@ -949,13 +949,6 @@
                 <div class="stat-box"><div class="val" id="cs-monthly">0%</div><div class="lbl">This Month</div></div>
                 <div class="stat-box"><div class="val" id="cs-alltime">0%</div><div class="lbl">All-Time</div></div>
             </div>
-        </div>
-
-        <div class="stats-card">
-            <h3>Compound Growth Projection</h3>
-            <div id="growth-projection-headline" style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; line-height:1.4;"></div>
-            <div class="compound-chart" id="growth-projection-chart"></div>
-            <div class="chart-labels"><span>Now</span><span>90d</span><span>180d</span><span>270d</span><span>365d</span></div>
         </div>
 
         <div class="stats-card">

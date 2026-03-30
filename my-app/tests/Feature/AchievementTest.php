@@ -96,9 +96,11 @@ describe('GET /api/state', function () {
 describe('POST /api/completions/toggle achievement unlocks', function () {
     it('returns null achievement when no condition is met', function () {
         makeUser();
-        $habit = makeHabitForAchievement();
+        $habit1 = makeHabitForAchievement('Habit 1');
+        makeHabitForAchievement('Habit 2'); // second habit left uncompleted — prevents perfect_day
 
-        $response = $this->postJson('/api/completions/toggle', ['habit_id' => $habit->id]);
+        // Only completing habit1 with habit2 uncompleted: no achievement condition is met
+        $response = $this->postJson('/api/completions/toggle', ['habit_id' => $habit1->id]);
 
         $response->assertSuccessful()
             ->assertJsonPath('achievement', null);
@@ -159,6 +161,7 @@ describe('POST /api/completions/toggle achievement unlocks', function () {
     it('unlocks comeback when rebuilding a broken streak', function () {
         makeUser();
         $habit = makeHabitForAchievement();
+        makeHabitForAchievement('Other Habit'); // left uncompleted — prevents perfect_day from firing first
 
         // Record a historical completion (before yesterday) to establish history
         HabitCompletion::create([
