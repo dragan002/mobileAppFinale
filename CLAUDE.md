@@ -40,9 +40,62 @@ php artisan native:run         # Build and run on device (requires Xcode or Andr
 
 **AtomicMe** is a personal habits app based on Atomic Habits principles. It is a **single-page application** served from one Blade view (`welcome.blade.php`), backed by a small Laravel JSON API.
 
-### Frontend (`resources/views/welcome.blade.php`)
+### Frontend Architecture (Refactored to Modular)
 
-The entire UI lives in a single file — all HTML, CSS, and JavaScript inline. It is a client-side SPA with named screens toggled via `showScreen(id)`:
+**Status:** Recently refactored (March 2026) into 15 modular ES6 modules + centralized services.
+
+The frontend lives in `resources/views/welcome.blade.php` (HTML structure + orchestration) and is powered by modular JavaScript in `resources/js/`:
+
+```
+resources/js/
+├── app.js                 # Integration layer — imports all 15 modules, exposes window.App
+├── state/
+│   └── reducer.js        # Pure state mutations (initialState, updateUser, addHabit, toggleCompletion, etc.)
+├── services/
+│   └── api.js            # Centralized API calls (getState, setupUser, createHabit, toggleCompletion, saveReflection, resetAll)
+├── screens/
+│   ├── onboarding.js     # Identity selection + name entry
+│   ├── home.js           # Today's habits, progress card, daily quote
+│   ├── add.js            # 4-step habit creation form
+│   ├── stats.js          # Streaks, weekly grid, habit breakdown
+│   ├── growth.js         # Consistency score, weekly/monthly charts, habit consistency
+│   └── habitDetail.js    # 12-week heatmap, streak hero, Your Setup card
+├── overlays/
+│   ├── milestone.js      # Streak celebration with confetti
+│   ├── profileSheet.js   # Identity stats, edit name/identity, reset data
+│   ├── weeklyReview.js   # Weekly reflection prompt
+│   └── noteSheet.js      # Add completion notes
+├── components/
+│   ├── chart.js          # Shared chart rendering (compound, rate, projection)
+│   ├── heatmap.js        # 12-week heatmap rendering
+│   ├── habitCard.js      # Reusable habit item component
+│   ├── streakCard.js     # Streak badge component
+│   └── statRow.js        # Stats table row component
+└── utils/
+    ├── dom.js            # DOM helpers (getElement, on, addClass, etc.)
+    └── forms.js          # Form helpers (getFieldValue, clearFields, etc.)
+```
+
+**Module Pattern:** Each screen/overlay exports:
+- `render(state)` — returns HTML string
+- `attachListeners(state, dispatch)` — wires up event handlers
+- `cleanup()` — removes event listeners (prevents memory leaks)
+
+**State Management:** Redux-inspired reducer pattern:
+- `reducer.js` contains pure functions: `initialState()`, `updateUser(state, data)`, `addHabit(state, habit)`, etc.
+- No side effects in reducer — all API calls happen in `app.js` orchestration layer
+- Global `state` object: `{ user, habits, completions, streaks, bestStreaks, achievements }`
+- Persisted to `localStorage` under `atomicme_v3` for fast cache
+
+**API Service:** Centralized in `services/api.js`:
+- All `fetch()` calls in one place
+- CSRF token read from `<meta name="csrf-token">` automatically
+- Standard response envelope: `{ ok, data, error }`
+- Methods: `getState()`, `setupUser()`, `createHabit()`, `toggleCompletion()`, `saveReflection()`, `resetAll()`
+
+### Frontend Screens
+
+The UI is organized into named screens toggled via `showScreen(id)`. Each screen is a module in `resources/js/screens/`:
 
 | Screen ID | Purpose |
 |---|---|
@@ -55,19 +108,19 @@ The entire UI lives in a single file — all HTML, CSS, and JavaScript inline. I
 | `profile-sheet` | Slide-up sheet from avatar tap: identity dashboard, edit name/identity, reset data |
 | `weekly-review-overlay` | Sunday/7-day reflection prompt with weekly completion summary |
 
-**State management:** A single `state` object `{ user, habits, completions, streaks, bestStreaks }` is kept in memory, persisted to `localStorage` as a fast cache, and synced to the backend via `fetch`. All UI mutations are optimistic — the UI updates instantly, then a background `api()` call syncs to the server.
+**Key orchestration functions in `welcome.blade.php`:**
+- `init()` — boots app: loads localStorage cache, syncs from `/api/state`, triggers weekly review if needed
+- `dispatch(action)` — applies state mutations via `reducer.js`, triggers UI re-render
+- `showScreen(id)` — activates a screen module, calls its `render()` and `attachListeners()`
+- `toggleHabit(id)` — optimistic completion toggle, posts to `/api/completions/toggle`
+- `saveHabit()` — creates or updates habit, checks `editingHabitId` for mode
+- `showEditHabit(id)` — loads habit into add-form for editing
+- `sync()` — background loop that periodically syncs state to server via `api.getState()`
 
-**Key JS functions to know:**
-- `init()` — loads from localStorage then refreshes from `/api/state`; calls `maybeShowWeeklyReview()` after sync
-- `toggleHabit(id)` — optimistic completion toggle + POST `/api/completions/toggle`
-- `showHabitDetail(id)` — renders detail screen including Your Setup card (4-Laws data) and reminder toggle
-- `saveHabit()` — creates (POST) or updates (PUT) a habit; checks `editingHabitId` to determine mode
-- `showEditHabit(id)` — pre-populates the 4-step add form for editing an existing habit
-- `showMilestone(days)` — triggered by server response when a streak milestone is hit
-- `openProfileSheet()` — computes identity stats (total votes = total completions) and opens profile sheet
-- `maybeShowWeeklyReview()` — shows weekly reflection overlay on Sundays or after 7 days since last review
-
-**localStorage keys:** `atomicme_state` (full state cache), `atomicme_reminders` (per-habit notification toggles), `atomicme_last_reviewed_week` (last weekly review date)
+**localStorage keys:**
+- `atomicme_v3` — full state cache (user, habits, completions, streaks, achievements)
+- `atomicme_reminders` — per-habit notification toggle states
+- `atomicme_last_reviewed_week` — date of last weekly reflection, used to show weekly review overlay once per week
 
 ### Backend
 
@@ -162,3 +215,56 @@ php artisan native:jump
 # Select: your WiFi IP (192.168.x.x) — not the 172.x virtual adapter
 ```
 Open `http://localhost:3000/jump/qr` and scan with the Jump app. Phone must be on the same WiFi. Changes to PHP/Blade require a pull-to-refresh in Jump; JS/CSS changes hot-reload via Vite HMR.
+
+## Common Development Tasks
+
+### Adding a New Screen
+
+1. Create `resources/js/screens/myScreen.js` with pattern:
+   ```javascript
+   export function render(state) { return `<div>...</div>`; }
+   export function attachListeners(state, dispatch) { /* wire up events */ }
+   export function cleanup() { /* remove listeners */ }
+   ```
+
+2. Add import to `resources/js/app.js` and expose via `window.App.screens.myScreen`
+
+3. Add HTML structure to `welcome.blade.php` with id matching your screen
+
+4. In `showScreen()`, call `App.screens.myScreen.render(state)` and `attachListeners()`
+
+### Modifying State
+
+Use pure reducer functions from `resources/js/state/reducer.js`. Example:
+```javascript
+const newState = App.reducer.updateHabit(state, habitId, updatedData);
+dispatch({ type: 'UPDATE_HABIT', payload: { habitId, data: updatedData } });
+```
+
+### Adding API Calls
+
+Add method to `resources/js/services/api.js`, then call from orchestration layer in `welcome.blade.php`:
+```javascript
+const result = await App.api.myNewEndpoint(params);
+if (result.ok) { dispatch({ type: 'MY_ACTION', payload: result.data }); }
+```
+
+### Testing
+
+The modular architecture is fully tested with Pest v4. Run:
+```bash
+php artisan test                    # All 98 tests
+php artisan test --filter=HabitTest  # Specific test class
+npm run build                       # Verify JS/CSS build succeeds
+```
+
+## Project Status
+
+**March 2026 Updates:**
+- ✅ Code Refactoring Complete: Extracted 15 modular JS files from monolithic Blade template
+- ✅ Architecture: State reducer + API service + utilities fully decoupled
+- ✅ Tests: All 98 tests passing with zero regressions
+- ✅ Play Store Readiness: Privacy policy created, critical blockers resolved, ready for submission
+- ✅ Bug Fixes: Growth screen consistency calculation fixed, layout issues resolved
+
+See `PLAYSTORE_CRITICAL_BLOCKERS_STATUS.md` and `LAYOUT_ISSUES_AND_FIXES.md` for recent fixes and compliance status.
