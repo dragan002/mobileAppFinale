@@ -172,7 +172,7 @@
         .daily-quote { margin: 0.75rem 1.25rem 0; padding: 0.875rem 1rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; font-size: 0.75rem; color: #8B92AB; line-height: 1.6; font-style: italic; }
 
         /* Bottom Nav */
-        .bottom-nav { position: sticky; bottom: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.4rem 0 max(0.75rem, env(safe-area-inset-bottom)); z-index: 200; flex-shrink: 0; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.4rem 0 max(0.75rem, env(safe-area-inset-bottom)); z-index: 1000; flex-shrink: 0; width: 100%; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.7rem; color: #8B92AB; cursor: pointer; padding: 0.5rem 0; min-height: 44px; min-width: 44px; transition: color .2s; flex: 1; }
         .nav-item.active { color: #C084FC; }
         .nav-icon { font-size: 1.25rem; }
@@ -688,13 +688,6 @@
         </div>
         <button class="btn-allow-notifs" onclick="requestNotificationPermission()">Allow</button>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
-        <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
-        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
-        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
-    </nav>
 </div>
 
 <!-- ══════════════════ SCREEN: ADD HABIT ══════════════════ -->
@@ -934,13 +927,6 @@
             <div id="identity-votes-list"></div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
-        <div class="nav-item active" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
-        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
-        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
-    </nav>
 </div>
 
 <!-- ══════════════════ SCREEN: GROWTH ══════════════════ -->
@@ -989,13 +975,6 @@
             <div id="growth-habits-list"></div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
-        <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
-        <div class="nav-item active" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
-        <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
-    </nav>
 </div>
 
 <!-- ══════════════════ SCREEN: ACHIEVEMENTS ══════════════════ -->
@@ -1029,13 +1008,6 @@
             <div id="prestige-achievements-list"></div>
         </div>
     </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
-        <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
-        <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
-        <div class="nav-item active" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
-    </nav>
 </div>
 
 <!-- ══════════════════ SCREEN: HABIT DETAIL ══════════════════ -->
@@ -1118,6 +1090,16 @@
         </div>
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SHARED BOTTOM NAVIGATION (outside all screens, always visible)
+     ═══════════════════════════════════════════════════════════ -->
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
+    <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+    <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+    <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
+</nav>
 
 <script>
 // ══════════════════════════════════════════
@@ -1398,10 +1380,9 @@ function showScreen(id) {
  */
 function showTab(id, navEl) {
     showScreen(id);
-    // Only update the nav within the now-active screen
-    const activeScreen = document.getElementById(id);
-    activeScreen.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-    const activeNav = activeScreen.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`);
+    // Update the global bottom nav (now at root level, not inside screens)
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+    const activeNav = document.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`);
     if (activeNav) { activeNav.classList.add('active'); }
 }
 
