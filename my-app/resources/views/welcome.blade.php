@@ -56,7 +56,10 @@
         .btn-primary:disabled { opacity: 0.4; cursor: default; }
 
         /* ── MAIN APP ── */
-        #screen-home, #screen-stats, #screen-add, #screen-growth, #screen-achievements { padding-top: env(safe-area-inset-top, 0); }
+        #screen-home, #screen-stats, #screen-add, #screen-growth, #screen-achievements {
+            padding-top: env(safe-area-inset-top, 0);
+            padding-bottom: 5.5rem;
+        }
 
         /* Header */
         .app-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
