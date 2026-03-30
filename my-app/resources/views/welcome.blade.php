@@ -9,6 +9,8 @@
     <title>AtomicMe</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/design-tokens.css') }}">
+    @vite('resources/js/app.js')
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; background: #0F1221; color: #EAEDF6; overflow: hidden; max-width: 100vw; overflow-x: hidden; }
@@ -1118,6 +1120,8 @@
 // ══════════════════════════════════════════
 //  CONSTANTS
 // ══════════════════════════════════════════
+
+/** @type {Object<string, { label: string, icon: string }>} Maps identity key → display label + emoji. */
 const IDENTITY_MAP = {
     athlete: { label: 'The Athlete',  icon: '🏃' },
     learner: { label: 'The Learner',  icon: '📚' },
@@ -1171,6 +1175,24 @@ const QUOTES = [
 // ══════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════
+
+/**
+ * Global application state. Single source of truth for all screens.
+ * Persisted to localStorage under the key `atomicme_v3` as a JSON cache and
+ * synced from `/api/state` on every `init()` call.
+ *
+ * Shape:
+ *   user            - null | object (name, identity, identityLabel, identityIcon)
+ *   habits          - Array of habit objects
+ *   completions     - Object keyed by "YYYY-MM-DD" → Array of habit IDs
+ *   completionNotes - Object keyed by "YYYY-MM-DD:habitId" → note string
+ *   streaks         - Object keyed by habitId → current streak integer
+ *   bestStreaks     - Object keyed by habitId → best streak integer
+ *   streakData      - Object keyed by habitId → (value, unit, graceDayActive)
+ *   bestStreakData  - Object keyed by habitId → (value, unit)
+ *   categories      - Array of category objects
+ *   achievements    - Array of (code, unlocked_at) objects
+ */
 let state = {
     user: null,
     habits: [],
@@ -1191,11 +1213,23 @@ let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', 
 let selectedIdentity = null;
 let activeCategoryFilter = null; // null = show all categories
 
+/** @returns {string} Today's date as an ISO string e.g. "2026-03-30". */
 function today() { return new Date().toISOString().slice(0, 10); }
 
 // ══════════════════════════════════════════
 //  API
 // ══════════════════════════════════════════
+
+/**
+ * Low-level fetch wrapper used for all API calls. Throws on non-OK HTTP status.
+ * Sets JSON content-type and CSRF token headers automatically.
+ *
+ * @@param {'GET'|'POST'|'PUT'|'DELETE'} method  HTTP verb.
+ * @@param {string}                      url     Root-relative URL, e.g. `/api/state`.
+ * @@param {Object|null}                 [data]  JSON-serialisable request body.
+ * @@returns {Promise<any>}  Parsed JSON response body.
+ * @@throws {Error}          On non-OK HTTP status.
+ */
 async function api(method, url, data = null) {
     const opts = {
         method,
@@ -1214,7 +1248,15 @@ async function api(method, url, data = null) {
 // ══════════════════════════════════════════
 //  PERSISTENCE
 // ══════════════════════════════════════════
+
+/** Serialise the current `state` to localStorage. Silently no-ops on QuotaExceededError. */
 function saveLocal() { try { localStorage.setItem('atomicme_v3', JSON.stringify(state)); } catch(e) {} }
+
+/**
+ * Deserialise the localStorage snapshot back into `state`.
+ * Merges with the default shape to ensure new fields added in later versions
+ * are always present even if the stored snapshot predates them.
+ */
 function loadLocal() {
     try {
         const r = localStorage.getItem('atomicme_v3');
@@ -1238,6 +1280,16 @@ function loadLocal() {
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+
+/**
+ * Bootstrap the application.
+ *  1. Instantly renders the cached state from localStorage (fast paint).
+ *  2. Fetches fresh state from `/api/state` and re-renders.
+ *  3. Triggers the weekly review prompt if applicable.
+ * Called once on page load — never call manually.
+ *
+ * @@returns {Promise<void>}
+ */
 async function init() {
     // Instant render from cache
     loadLocal();
@@ -1277,15 +1329,35 @@ init();
 // ══════════════════════════════════════════
 //  CATEGORY HELPERS
 // ══════════════════════════════════════════
+
+/**
+ * Find a category object by its numeric ID.
+ *
+ * @@param {number|null} id
+ * @@returns {Object|null}
+ */
 function getCategoryById(id) {
     return state.categories.find(c => c.id === id) || null;
 }
 
+/**
+ * Return the hex colour string for a category, or the default muted colour.
+ *
+ * @@param {number|null} categoryId
+ * @@returns {string}  CSS colour string.
+ */
 function getCategoryColor(categoryId) {
     const cat = getCategoryById(categoryId);
     return cat ? cat.color : '#5A6180';
 }
 
+/**
+ * Render a small inline badge HTML string for a category pill.
+ * Returns an empty string if the category is not found.
+ *
+ * @@param {number|null} categoryId
+ * @@returns {string}  HTML string.
+ */
 function renderCategoryBadge(categoryId) {
     const cat = getCategoryById(categoryId);
     return cat ? `<span class="category-badge" style="background:${cat.color}22; border:1px solid ${cat.color}55; color:${cat.color};">${cat.name}</span>` : '';
@@ -1294,6 +1366,14 @@ function renderCategoryBadge(categoryId) {
 // ══════════════════════════════════════════
 //  SCREEN NAVIGATION
 // ══════════════════════════════════════════
+
+/**
+ * Activate a screen by its element ID, deactivating all others.
+ * Also triggers the appropriate render function for data-driven screens.
+ *
+ * @@param {string} id  The screen element's `id`, e.g. `'screen-home'`.
+ * @@returns {void}
+ */
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-left'));
     document.getElementById(id).classList.add('active');
@@ -1305,6 +1385,15 @@ function showScreen(id) {
     if (id === 'screen-add' && !editingHabitId) { resetAddForm(); }
 }
 
+/**
+ * Switch to a tab screen and update the active state on the bottom nav item
+ * within that screen. Separate from `showScreen` because tab nav items need
+ * their own active class management.
+ *
+ * @@param {string}          id     Screen element ID.
+ * @@param {HTMLElement|null} navEl  The clicked nav item element (or null).
+ * @@returns {void}
+ */
 function showTab(id, navEl) {
     showScreen(id);
     // Only update the nav within the now-active screen
@@ -1317,6 +1406,14 @@ function showTab(id, navEl) {
 // ══════════════════════════════════════════
 //  ONBOARDING
 // ══════════════════════════════════════════
+
+/**
+ * Handle a tap on an identity card in the onboarding grid.
+ * Marks the card selected and enables the CTA button if a name is also entered.
+ *
+ * @@param {HTMLElement} el  The tapped identity card element.
+ * @@returns {void}
+ */
 function selectIdentity(el) {
     document.querySelectorAll('.identity-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
@@ -1324,11 +1421,23 @@ function selectIdentity(el) {
     checkObReady();
 }
 
+/**
+ * Enable or disable the onboarding CTA button based on whether both a name and
+ * an identity have been provided.
+ *
+ * @@returns {void}
+ */
 function checkObReady() {
     const name = document.getElementById('user-name').value.trim();
     document.getElementById('ob-btn').disabled = !(name && selectedIdentity);
 }
 
+/**
+ * Complete onboarding: set user state, show home, fire welcome toast, and
+ * POST to `/api/setup` in the background.
+ *
+ * @@returns {Promise<void>}
+ */
 async function finishOnboarding() {
     const name = document.getElementById('user-name').value.trim();
     const identity = IDENTITY_MAP[selectedIdentity];
@@ -1346,127 +1455,49 @@ async function finishOnboarding() {
 // ══════════════════════════════════════════
 //  HOME
 // ══════════════════════════════════════════
+
+/**
+ * Render the home screen: greeting, progress card, daily quote, and habits list.
+ * Delegates DOM updates to App.screens.home module helpers.
+ *
+ * @@returns {void}
+ */
 function renderHome() {
     if (!state.user) { return; }
-    const u = state.user;
-    const todayKey = today();
-    const completedTodayIds = (state.completions[todayKey] || []).map(String);
-    const activeHabits = state.habits;
 
-    const hour = new Date().getHours();
-    const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    document.getElementById('home-greeting').textContent = `${greet}, ${u.name} 👋`;
-    document.getElementById('home-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    document.getElementById('home-avatar').textContent = u.name[0].toUpperCase();
-    document.getElementById('stats-avatar').textContent = u.name[0].toUpperCase();
-    const achievementsAvatar = document.getElementById('achievements-avatar');
-    if (achievementsAvatar) { achievementsAvatar.textContent = u.name[0].toUpperCase(); }
-
-    const total = activeHabits.length;
-    const done  = completedTodayIds.filter(id => activeHabits.some(h => String(h.id) === id)).length;
-    const pct   = total ? Math.round((done / total) * 100) : 0;
-
-    document.getElementById('done-count').textContent  = done;
-    document.getElementById('total-count').textContent = total;
-    document.getElementById('progress-bar').style.width = pct + '%';
-
-    const progressCard = document.querySelector('.progress-card');
-    if (progressCard) {
-        if (done === total && total > 0) {
-            progressCard.classList.add('all-done');
-        } else {
-            progressCard.classList.remove('all-done');
-        }
-    }
-
-    const identityData = IDENTITY_MAP[u.identity] || { label: u.identityLabel, icon: u.identityIcon };
-    document.getElementById('identity-badge').textContent = `${identityData.icon} Becoming ${identityData.label}`;
-
-    let sub = '';
-    if (total === 0)       { sub = 'Add your first habit to get started.'; }
-    else if (done === 0)   { sub = `${total} habit${total > 1 ? 's' : ''} waiting for you.`; }
-    else if (done === total) { sub = 'All done! Perfect day. Keep the chain going! 🔥'; }
-    else                   { sub = `${total - done} habit${(total - done) > 1 ? 's' : ''} to go — you can do this!`; }
-    document.getElementById('progress-sub').textContent = sub;
-
-    // Daily quote
-    const qi = new Date().getDate() % QUOTES.length;
-    document.getElementById('daily-quote').textContent = `"${QUOTES[qi]}"`;
-
-    const list  = document.getElementById('habits-list');
-    const empty = document.getElementById('empty-state');
-
-    if (activeHabits.length === 0) {
-        list.innerHTML = '';
-        empty.style.display = 'flex';
-        empty.innerHTML = `
-            <div style="font-size: 4rem; margin-bottom: 1.5rem; text-align: center;">🌱✨</div>
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: #EAEDF6; margin-bottom: 0.5rem; text-align: center;">
-                Your first vote for becoming ${state.user.identity || 'your best self'}
-            </h3>
-            <p style="font-size: 0.85rem; color: #8B92AB; margin-bottom: 1.5rem; line-height: 1.5; text-align: center;">
-                Start with one tiny habit. Two minutes or less.
-            </p>
-            <button onclick="showScreen('screen-add')" class="btn-primary" style="width: 100%; max-width: 280px; margin: 0 auto; display: block;">
-                Add Your First Habit
-            </button>
-        `;
-    } else {
-        empty.style.display = 'none';
-        const yesterdayKey = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-        const completedYesterdayIds = (state.completions[yesterdayKey] || []).map(String);
-
-        list.innerHTML = activeHabits.map(h => {
-            const isDone       = completedTodayIds.includes(String(h.id));
-            const streak       = state.streaks[h.id] || 0;
-            const sd           = (state.streakData || {})[h.id] || { value: streak, unit: 'days', graceDayActive: false };
-            const isFrequency  = (h.targetDaysPerWeek || 7) < 7;
-            const isAtRisk     = streak >= 3 && !isDone && !isFrequency;
-            const isGraceDay   = sd.graceDayActive;
-            const streakClass  = isGraceDay ? 'grace-day-text' : (isAtRisk ? 'at-risk-text' : '');
-
-            let streakHtml = '';
-            if (isFrequency) {
-                // Show weekly progress for frequency habits
-                const weekStart = (() => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d; })();
-                const weekDone = Object.entries(state.completions)
-                    .filter(([date]) => new Date(date) >= weekStart)
-                    .reduce((count, [, ids]) => count + (ids.map(String).includes(String(h.id)) ? 1 : 0), 0);
-                const target = h.targetDaysPerWeek || 7;
-                const weekMet = weekDone >= target;
-                const weekSuffix = weekMet ? ' ✓' : '';
-                const freqClass = isGraceDay ? 'grace-day-text' : (weekMet ? '' : '');
-                const freqStreakPart = sd.value > 0 ? ` · ${sd.value}w streak` : '';
-                streakHtml = `<div class="habit-streak ${freqClass}">${weekDone}/${target} this week${weekSuffix}${freqStreakPart}</div>`;
-            } else if (streak > 0) {
-                const streakSuffix = isGraceDay
-                    ? ' · grace day active'
-                    : (isAtRisk ? ' · ⚠️ at risk!' : '');
-                streakHtml = `<div class="habit-streak ${streakClass}">${getStreakEmoji(streak)} ${streak} day streak${streakSuffix}</div>`;
-            }
-
-            const isStreakHigh = streak >= 7;
-            const habitColor = h.color || '#a78bfa';
-            const freqLabel = isFrequency ? `${h.targetDaysPerWeek}x/wk · ` : '';
-            return `
-            <div class="habit-item ${isDone ? 'completed' : ''} ${isAtRisk ? 'at-risk' : ''} ${isStreakHigh ? 'streak-high' : ''}" id="item-${h.id}" style="${isStreakHigh ? '--habit-color:' + habitColor + ';' : ''}" onclick="toggleHabit('${h.id}')">
-                <div class="habit-icon-wrap" style="background:${h.color}" onclick="event.stopPropagation(); showHabitDetail('${h.id}')">${h.emoji}</div>
-                <div class="habit-info" onclick="event.stopPropagation(); showHabitDetail('${h.id}')">
-                    <div class="habit-name">${h.name}</div>
-                    <div class="habit-meta">${freqLabel}${h.duration || (isFrequency ? 'Weekly' : 'Daily')} · ${capitalize(h.time)}</div>
-                    ${streakHtml}
-                </div>
-                <div class="habit-check"></div>
-            </div>`;
-        }).join('');
+    if (window.App) {
+        App.screens.home.updateGreeting(state);
+        App.screens.home.updateProgressCard(state);
+        App.screens.home.updateDailyQuote();
+        App.screens.home.updateHabitsList(state);
     }
 }
 
+/**
+ * Capitalise the first character of a string.
+ *
+ * @@param {string} s
+ * @@returns {string}
+ */
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
 // ══════════════════════════════════════════
 //  TOGGLE COMPLETION
 // ══════════════════════════════════════════
+
+/**
+ * Toggle today's completion for a habit with an optimistic UI update.
+ *
+ * Flow:
+ *  1. Update `state.completions` and `state.streaks` immediately (optimistic).
+ *  2. Re-render home.
+ *  3. POST to `/api/completions/toggle` in the background.
+ *  4. Apply the authoritative streak returned by the server.
+ *  5. Trigger milestone / achievement celebrations if applicable.
+ *
+ * @@param {string|number} id  Habit ID.
+ * @@returns {Promise<void>}
+ */
 async function toggleHabit(id) {
     const todayKey = today();
     if (!state.completions[todayKey]) { state.completions[todayKey] = []; }
@@ -1534,6 +1565,13 @@ async function toggleHabit(id) {
 // ══════════════════════════════════════════
 //  STREAK HELPERS
 // ══════════════════════════════════════════
+
+/**
+ * Return one to three fire emojis that visually represent streak intensity.
+ *
+ * @@param {number} streak  Current streak count.
+ * @@returns {string}
+ */
 function getStreakEmoji(streak) {
     if (streak >= 100) { return '💥🔥💥'; }
     if (streak >= 60)  { return '⚡🔥⚡'; }
@@ -1542,206 +1580,42 @@ function getStreakEmoji(streak) {
     return '🔥';
 }
 
-function getMilestoneBadge(streak) {
-    if (streak >= 100) { return '🌟 Legend — 100 days'; }
-    if (streak >= 90)  { return '💎 Diamond — 90 days'; }
-    if (streak >= 60)  { return '⚡ Elite — 60 days'; }
-    if (streak >= 30)  { return '🏆 Champion — 30 days'; }
-    if (streak >= 21)  { return '💪 Committed — 21 days'; }
-    if (streak >= 14)  { return '🔥 On Fire — 14 days'; }
-    if (streak >= 7)   { return '✨ Consistent — 7 days'; }
-    return null;
-}
-
-function getMilestoneBadgeWeekly(weeks) {
-    if (weeks >= 52) { return '👑 Year Legend — 52 weeks'; }
-    if (weeks >= 26) { return '🏆 Half Year — 26 weeks'; }
-    if (weeks >= 13) { return '💎 Quarter — 13 weeks'; }
-    if (weeks >= 9)  { return '💪 66-Day Zone — 9 weeks'; }
-    if (weeks >= 4)  { return '✨ First Month — 4 weeks'; }
-    return null;
-}
-
-function calcCompletionRate(id, days) {
-    let count = 0;
-    for (let i = 0; i < days; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        if ((state.completions[key] || []).map(String).includes(String(id))) { count++; }
-    }
-    return Math.round((count / days) * 100);
-}
-
-function calcTotalCompletions(id) {
-    let total = 0;
-    Object.values(state.completions).forEach(arr => {
-        if (arr.map(String).includes(String(id))) { total++; }
-    });
-    return total;
-}
 
 // ══════════════════════════════════════════
 //  HABIT DETAIL
 // ══════════════════════════════════════════
+
+/**
+ * Populate and display the Habit Detail screen for the given habit ID.
+ * Sets `currentDetailHabitId`, delegates content rendering to the
+ * App.screens.habitDetail module, then syncs the reminder card and navigates.
+ *
+ * @@param {string|number} id  Habit ID.
+ * @@returns {void}
+ */
 function showHabitDetail(id) {
     if (!id) { return; }
     currentDetailHabitId = id;
     const habit = state.habits.find(h => String(h.id) === String(id));
     if (!habit) { return; }
 
-    const streak      = state.streaks[id] || 0;
-    const sd          = state.streakData[id] || { value: streak, unit: 'days', graceDayActive: false };
-    const bsd         = state.bestStreakData[id] || { value: state.bestStreaks[id] || 0, unit: sd.unit };
-    const bestStreak  = Math.max(bsd.value, sd.value);
-    const todayDone   = (state.completions[today()] || []).map(String).includes(String(id));
-    const rate30      = calcCompletionRate(id, 30);
-    const totalDone   = calcTotalCompletions(id);
-    const streakUnit  = sd.unit;
-
-    document.getElementById('detail-title').textContent       = `${habit.emoji} ${habit.name}`;
-    document.getElementById('detail-fire').textContent        = streak > 0 ? (streakUnit === 'weeks' ? '📅🔥' : getStreakEmoji(streak)) : '💤';
-    document.getElementById('detail-streak-num').textContent  = sd.value;
-    document.getElementById('detail-best').textContent        = bestStreak;
-    document.getElementById('detail-total').textContent       = totalDone;
-    document.getElementById('detail-rate').textContent        = rate30 + '%';
-
-    // Update the "days" label below streak number to reflect unit
-    const streakLabelEl = document.querySelector('.streak-label');
-    if (streakLabelEl) {
-        streakLabelEl.textContent = streakUnit === 'weeks' ? 'week streak' : 'day streak';
+    if (window.App) {
+        App.screens.habitDetail.updateDetailScreen(state, id);
     }
-
-    const badge    = streakUnit === 'weeks' ? getMilestoneBadgeWeekly(sd.value) : getMilestoneBadge(streak);
-    const badgeEl  = document.getElementById('detail-milestone');
-    if (badge) { badgeEl.textContent = badge; badgeEl.style.display = 'inline-flex'; }
-    else        { badgeEl.style.display = 'none'; }
-
-    renderDetailHeatmap(id);
-    document.getElementById('detail-insight').innerHTML = streakUnit === 'weeks'
-        ? getInsightMessageWeekly(sd.value, habit.name)
-        : getInsightMessage(streak, habit.name);
-
-    // Display phase information if available
-    if (habit.phase) {
-        const phaseCard = document.getElementById('detail-phase-card');
-        document.getElementById('detail-phase-icon').textContent = habit.phase.icon || '🌱';
-        document.getElementById('detail-phase-label').textContent = habit.phase.label || 'Phase Unknown';
-        document.getElementById('detail-phase-description').textContent = habit.phase.description || '';
-
-        const consistencyEl = document.getElementById('detail-phase-consistency');
-        if (habit.phase.consistencyRate !== undefined) {
-            consistencyEl.textContent = `${habit.phase.consistencyRate}% consistency`;
-        } else {
-            consistencyEl.textContent = `Day ${habit.phase.daysSinceCreation || 0}`;
-        }
-
-        phaseCard.style.display = 'block';
-    } else {
-        document.getElementById('detail-phase-card').style.display = 'none';
-    }
-
-    renderDetailNotes(id);
-
-    const setupFields = [
-        { label: 'Your Why',          value: habit.why },
-        { label: '2-Minute Version',  value: habit.twoMin },
-        { label: 'Habit Stack',       value: habit.stack },
-        { label: 'Temptation Bundle', value: habit.bundle },
-        { label: 'Your Reward',       value: habit.reward },
-    ].filter(f => f.value && f.value.trim() !== '');
-
-    const setupCard = document.getElementById('detail-setup');
-    if (setupFields.length > 0) {
-        document.getElementById('detail-setup-fields').innerHTML = setupFields.map(f =>
-            `<div class="setup-field">
-                <div class="setup-field-label">${f.label}</div>
-                <div class="setup-field-value">${f.value}</div>
-            </div>`
-        ).join('');
-        setupCard.style.display = '';
-    } else {
-        setupCard.style.display = 'none';
-    }
-
-    const btn = document.getElementById('detail-complete-btn');
-    if (todayDone) { btn.textContent = '✓ Completed Today!'; btn.classList.add('is-done'); }
-    else           { btn.textContent = '✓ Complete for Today'; btn.classList.remove('is-done'); }
 
     renderDetailReminder(id);
-
     showScreen('screen-habit-detail');
 }
 
-function renderDetailHeatmap(id) {
-    const container = document.getElementById('detail-heatmap');
-    const todayStr  = today();
-    const habit     = state.habits.find(h => String(h.id) === String(id));
-    const isFreq    = habit && (habit.targetDaysPerWeek || 7) < 7;
-    const target    = habit ? (habit.targetDaysPerWeek || 7) : 7;
-    const weeks     = [];
 
-    // Pre-compute per-week completion counts for frequency habits
-    const weekCounts = {};
-    if (isFreq) {
-        for (let w = 0; w < 12; w++) {
-            const anchorDate = new Date();
-            anchorDate.setDate(anchorDate.getDate() - (11 - w) * 7 - 6);
-            const weekStart = new Date(anchorDate);
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-            weekStart.setHours(0, 0, 0, 0);
-            const weekKey = weekStart.toISOString().slice(0, 10);
-            if (!weekCounts[weekKey]) {
-                weekCounts[weekKey] = 0;
-                for (let d = 0; d < 7; d++) {
-                    const wd = new Date(weekStart);
-                    wd.setDate(wd.getDate() + d);
-                    const wdStr = wd.toISOString().slice(0, 10);
-                    if ((state.completions[wdStr] || []).map(String).includes(String(id))) {
-                        weekCounts[weekKey]++;
-                    }
-                }
-            }
-        }
-    }
-
-    for (let w = 0; w < 12; w++) {
-        const col = [];
-        for (let d = 6; d >= 0; d--) {
-            const offset = (11 - w) * 7 + d;
-            const date   = new Date();
-            date.setDate(date.getDate() - offset);
-            const dateStr = date.toISOString().slice(0, 10);
-            const done = (state.completions[dateStr] || []).map(String).includes(String(id));
-
-            let cellClass = '';
-            if (done) {
-                cellClass = 'done';
-            } else if (isFreq) {
-                // Find the week start for this cell
-                const weekStart = new Date(date);
-                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-                weekStart.setHours(0, 0, 0, 0);
-                const weekKey = weekStart.toISOString().slice(0, 10);
-                const wCount = weekCounts[weekKey] || 0;
-                cellClass = wCount >= target ? 'neutral' : 'missed';
-            } else {
-                // Future dates are neutral; past missed dates show as missed
-                cellClass = dateStr > todayStr ? '' : 'missed';
-            }
-
-            col.push({ dateStr, cellClass, isToday: dateStr === todayStr });
-        }
-        weeks.push(col);
-    }
-
-    container.innerHTML = weeks.map(col =>
-        `<div class="heatmap-col">${col.map(day =>
-            `<div class="heatmap-cell ${day.cellClass} ${day.isToday ? 'today' : ''}"></div>`
-        ).join('')}</div>`
-    ).join('');
-}
-
+/**
+ * Render the notes timeline section on the Habit Detail screen.
+ * Shows the 5 most recent completion notes for the given habit, sorted newest first.
+ * Hides the section entirely if there are no notes.
+ *
+ * @@param {string|number} habitId
+ * @@returns {void}
+ */
 function renderDetailNotes(habitId) {
     // Collect all notes for this habit and render them in a timeline
     const habitNotes = [];
@@ -1780,47 +1654,13 @@ function renderDetailNotes(habitId) {
     notesEl.style.display = 'block';
 }
 
-function getInsightMessage(streak, habitName) {
-    if (streak === 0) {
-        return `<strong>Start today.</strong> "The best time to plant a tree was 20 years ago. The second best time is now." Every master was once a beginner.`;
-    }
-    if (streak < 7) {
-        return `<strong>${streak} day${streak > 1 ? 's' : ''} in.</strong> Your brain is beginning to link the cue, routine, and reward. The habit loop is forming. Keep showing up.`;
-    }
-    if (streak < 14) {
-        return `<strong>One week strong!</strong> You've cast ${streak} votes for your identity. Research shows the first week is the hardest — and you've done it. The automaticity effect has begun.`;
-    }
-    if (streak < 21) {
-        return `<strong>Two weeks of consistency!</strong> Around day 18, automaticity starts to kick in. Your brain is literally rewiring itself for ${habitName}. You're almost to the threshold.`;
-    }
-    if (streak < 30) {
-        return `<strong>3-week warrior!</strong> Studies by University College London show habits form in an average of 66 days. You're one-third of the way to fully automatic. Keep it up.`;
-    }
-    if (streak < 60) {
-        return `<strong>30+ day champion!</strong> You've crossed the hardest barrier. At this point, missing feels harder than doing. You're building an identity, not just a habit.`;
-    }
-    return `<strong>You ARE this habit now.</strong> After ${streak} days, this is no longer something you do — it is who you are. James Clear would be proud. Keep the chain alive.`;
-}
 
-function getInsightMessageWeekly(weeks, habitName) {
-    if (weeks === 0) {
-        return `<strong>Start this week.</strong> "Reduce the habit to its minimal version." One week of showing up is all it takes to begin. Start today.`;
-    }
-    if (weeks < 4) {
-        return `<strong>${weeks} week${weeks > 1 ? 's' : ''} in.</strong> Your schedule is adapting. The neural pathway is forming. Consistency over the next few weeks will lock this in.`;
-    }
-    if (weeks < 9) {
-        return `<strong>First month complete!</strong> You've completed ${weeks} weeks. Research from University College London shows you're well on your way to automaticity. Don't stop now.`;
-    }
-    if (weeks < 13) {
-        return `<strong>9 weeks — the 66-day threshold!</strong> Phillippa Lally's research says most habits solidify around 66 days. You've crossed that line. ${habitName} is sticking.`;
-    }
-    if (weeks < 26) {
-        return `<strong>One quarter done!</strong> 13 weeks of ${habitName}. You've proven to yourself that this is who you are — not just something you're trying.`;
-    }
-    return `<strong>You ARE this habit.</strong> ${weeks} weeks of consistency. This is identity-level change. James Clear would call this an atomic habit fully formed.`;
-}
-
+/**
+ * Toggle the current detail habit's completion from the Habit Detail screen.
+ * Calls `toggleHabit` then re-renders the detail screen after a short delay.
+ *
+ * @@returns {void}
+ */
 function toggleHabitFromDetail() {
     if (currentDetailHabitId) {
         toggleHabit(currentDetailHabitId);
@@ -1828,6 +1668,12 @@ function toggleHabitFromDetail() {
     }
 }
 
+/**
+ * Initiate deletion of the habit currently shown in the detail screen.
+ * Opens the delete confirmation bottom sheet.
+ *
+ * @@returns {void}
+ */
 function deleteHabitFromDetail() {
     if (!currentDetailHabitId) { return; }
     const habit = state.habits.find(h => String(h.id) === String(currentDetailHabitId));
@@ -1835,6 +1681,13 @@ function deleteHabitFromDetail() {
     showDeleteSheet(habit.id, habit.name);
 }
 
+/**
+ * Delete a habit: remove from local state, cancel its reminder, navigate home,
+ * and fire DELETE `/api/habits/{id}` in the background.
+ *
+ * @@param {string|number} deletedId  Habit ID to remove.
+ * @@returns {void}
+ */
 function deleteHabit(deletedId) {
     state.habits = state.habits.filter(h => String(h.id) !== String(deletedId));
     Object.keys(state.completions).forEach(date => {
@@ -1856,6 +1709,13 @@ function deleteHabit(deletedId) {
     showScreen('screen-home');
 }
 
+/**
+ * Pre-populate the Add Habit form with an existing habit's data and switch to
+ * edit mode. Sets `editingHabitId` so `saveHabit()` knows to PUT instead of POST.
+ *
+ * @@param {string|number} id  Habit ID to edit.
+ * @@returns {void}
+ */
 function showEditHabit(id) {
     if (!id) { return; }
     const habit = state.habits.find(h => String(h.id) === String(id));
@@ -1922,6 +1782,14 @@ function showEditHabit(id) {
 // ══════════════════════════════════════════
 //  ADD HABIT FORM
 // ══════════════════════════════════════════
+
+/**
+ * Reset the Add Habit form to its default blank state.
+ * Called when entering the add screen fresh (not in edit mode) and after
+ * a habit is successfully saved.
+ *
+ * @@returns {void}
+ */
 function resetAddForm() {
     newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
     goStep(0);
@@ -1943,6 +1811,13 @@ function resetAddForm() {
 // Step order: 0 → freq → 1 → 2 → 3
 const STEP_ORDER = [0, 'freq', 1, 2, 3];
 
+/**
+ * Navigate the Add Habit wizard to the specified step.
+ * Hides the current step, shows the target step, and updates the step indicator bar.
+ *
+ * @@param {number|'freq'} n  Target step identifier: 0, 'freq', 1, 2, or 3.
+ * @@returns {void}
+ */
 function goStep(n) {
     document.getElementById('add-step-' + currentStep).style.display = 'none';
     currentStep = n;
@@ -1965,6 +1840,12 @@ function goStep(n) {
     document.querySelector('.add-body').scrollTo(0, 0);
 }
 
+/**
+ * Render the frequency selector grid (1–7 days/week) on the freq step.
+ * Highlights the currently selected frequency from `newHabit.targetDaysPerWeek`.
+ *
+ * @@returns {void}
+ */
 function renderFrequencyGrid() {
     const grid = document.getElementById('frequency-grid');
     if (!grid) { return; }
@@ -1979,6 +1860,12 @@ function renderFrequencyGrid() {
     }).join('');
 }
 
+/**
+ * Set the target frequency for the new habit and highlight the chosen button.
+ *
+ * @@param {number} days  Number of days per week (1–7).
+ * @@returns {void}
+ */
 function selectFrequency(days) {
     newHabit.targetDaysPerWeek = days;
     document.querySelectorAll('.frequency-btn').forEach(b => b.classList.remove('selected'));
@@ -1986,30 +1873,60 @@ function selectFrequency(days) {
     if (btns[days - 1]) { btns[days - 1].classList.add('selected'); }
 }
 
+/**
+ * Select an emoji for the new/edited habit from the emoji grid.
+ *
+ * @@param {HTMLElement} el  The clicked emoji button element.
+ * @@returns {void}
+ */
 function selectEmoji(el) {
     document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     newHabit.emoji = el.dataset.emoji;
 }
 
+/**
+ * Select a time-of-day for the new/edited habit from the time grid.
+ *
+ * @@param {HTMLElement} el  The clicked time button element.
+ * @@returns {void}
+ */
 function selectTime(el) {
     document.querySelectorAll('#time-grid .time-btn').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     newHabit.time = el.dataset.time;
 }
 
+/**
+ * Select a background colour for the new/edited habit's icon.
+ *
+ * @@param {HTMLElement} el  The clicked colour swatch element.
+ * @@returns {void}
+ */
 function selectColor(el) {
     document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     newHabit.color = el.dataset.color;
 }
 
+/**
+ * Select a difficulty level for the new/edited habit.
+ *
+ * @@param {HTMLElement} el  The clicked difficulty button element.
+ * @@returns {void}
+ */
 function selectDiff(el) {
     document.querySelectorAll('#diff-grid .time-btn').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     newHabit.diff = el.dataset.diff;
 }
 
+/**
+ * Render the category picker pill list from `state.categories`.
+ * Includes a "None" option that deselects any category.
+ *
+ * @@returns {void}
+ */
 function renderCategoryPicker() {
     const picker = document.getElementById('category-picker');
     if (!picker) { return; }
@@ -2024,6 +1941,13 @@ function renderCategoryPicker() {
     `;
 }
 
+/**
+ * Select a category pill in the category picker.
+ *
+ * @@param {HTMLElement}  el  The clicked pill element.
+ * @@param {number|null}  id  Category ID, or `null` for "None".
+ * @@returns {void}
+ */
 function selectCategory(el, id) {
     const picker = document.getElementById('category-picker');
     picker.querySelectorAll('.category-pill').forEach(p => p.classList.remove('selected'));
@@ -2031,6 +1955,14 @@ function selectCategory(el, id) {
     newHabit.categoryId = id;
 }
 
+/**
+ * Save the current Add Habit form as either a new habit (POST) or an update (PUT).
+ * Behaviour is determined by `editingHabitId`:
+ *  - `null`    → create mode: optimistic add with temp ID, then server swap.
+ *  - non-null  → edit mode: optimistic in-place update, then server confirm.
+ *
+ * @@returns {Promise<void>}
+ */
 async function saveHabit() {
     const name = document.getElementById('new-name').value.trim();
     if (!name) { showToast('Please enter a habit name first', 'purple'); goStep(0); return; }
@@ -2108,319 +2040,102 @@ async function saveHabit() {
 // ══════════════════════════════════════════
 //  STATS
 // ══════════════════════════════════════════
+
+/**
+ * Render the Stats screen: top stats row, compound chart, weekly grid,
+ * per-habit breakdown, and identity votes panel.
+ * Delegates to App.screens.stats module.
+ *
+ * @@returns {void}
+ */
 function renderStats() {
-    if (!state.user) { return; }
-
-    const todayKey       = today();
-    const activeHabits   = state.habits;
-    const total          = activeHabits.length;
-    const todayDone      = (state.completions[todayKey] || []).filter(id => activeHabits.some(h => String(h.id) === String(id))).length;
-    const rate           = total ? Math.round((todayDone / total) * 100) : 0;
-    const overallStreak  = calcOverallStreak();
-    let   totalAllTime   = 0;
-    Object.values(state.completions).forEach(arr => { totalAllTime += arr.filter(id => activeHabits.some(h => String(h.id) === String(id))).length; });
-
-    document.getElementById('stat-streak').textContent = overallStreak;
-    document.getElementById('stat-total').textContent  = totalAllTime;
-    document.getElementById('stat-rate').textContent   = rate + '%';
-
-    // Compound chart (1% improvement model)
-    const chart  = document.getElementById('compound-chart');
-    const points = [1, 4, 8, 13, 26, 52];
-    const maxVal = Math.pow(1.01, 365);
-    chart.innerHTML = points.map(week => {
-        const val = Math.pow(1.01, week * 7);
-        return `<div class="compound-bar" style="height:${Math.max(4, (val / maxVal) * 100)}%"></div>`;
-    }).join('');
-
-    // Weekly grid
-    const weekGrid = document.getElementById('weekly-grid');
-    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const now = new Date();
-    weekGrid.innerHTML = dayNames.map((label, i) => {
-        const d = new Date(now);
-        d.setDate(now.getDate() - now.getDay() + i);
-        const key  = d.toISOString().slice(0, 10);
-        const comp = (state.completions[key] || []).filter(id => activeHabits.some(h => String(h.id) === String(id))).length;
-        const cls  = total > 0 && comp >= total ? 'done' : comp > 0 ? 'partial' : '';
-        return `<div class="week-day"><div class="week-day-label">${label}</div><div class="week-dot ${cls}"></div></div>`;
-    }).join('');
-
-    // Per-habit breakdown
-    const breakdownCard = document.getElementById('habit-breakdown-card');
-    const breakdown     = document.getElementById('habit-breakdown');
-    if (activeHabits.length > 0) {
-        breakdownCard.style.display = 'block';
-        breakdown.innerHTML = activeHabits.map(h => {
-            const streak = state.streaks[h.id] || 0;
-            const sd = state.streakData[h.id] || { value: streak, unit: 'days' };
-            const rate30 = calcCompletionRate(h.id, 30);
-            const streakText = sd.value > 0
-                ? (sd.unit === 'weeks'
-                    ? `📅 ${sd.value} week streak · `
-                    : `${getStreakEmoji(sd.value)} ${sd.value} day streak · `)
-                : '';
-            return `<div class="identity-item" onclick="showHabitDetail('${h.id}')">
-                <div class="identity-icon">${h.emoji}</div>
-                <div class="identity-info">
-                    <div class="identity-name">${h.name}</div>
-                    <div class="identity-votes">${streakText}${rate30}% this month</div>
-                    <div class="identity-bar"><div class="identity-bar-fill" style="width:${rate30}%"></div></div>
-                </div>
-            </div>`;
-        }).join('');
-    } else {
-        breakdownCard.style.display = 'none';
+    if (window.App) {
+        App.screens.stats.updateStatsScreen(state);
     }
-
-    // Identity votes
-    const votesList = document.getElementById('identity-votes-list');
-    if (activeHabits.length === 0) {
-        votesList.innerHTML = '<p style="color:#5A6180;font-size:.8rem;padding:.5rem 0;">Add habits to track identity votes.</p>';
-        return;
-    }
-    const u        = state.user;
-    let voteCount  = 0;
-    Object.values(state.completions).forEach(arr => {
-        voteCount += arr.filter(id => activeHabits.some(h => String(h.id) === String(id))).length;
-    });
-    const identityData = IDENTITY_MAP[u.identity] || { label: u.identityLabel, icon: u.identityIcon };
-    votesList.innerHTML = `<div class="identity-item" style="cursor:default;">
-        <div class="identity-icon">${identityData.icon}</div>
-        <div class="identity-info">
-            <div class="identity-name">${identityData.label}</div>
-            <div class="identity-votes">${voteCount} vote${voteCount !== 1 ? 's' : ''} cast for your identity</div>
-            <div class="identity-bar"><div class="identity-bar-fill" style="width:${Math.min(100, voteCount)}%"></div></div>
-        </div>
-    </div>`;
 }
 
 // ══════════════════════════════════════════
 //  GROWTH SCREEN
 // ══════════════════════════════════════════
+
+/**
+ * Render the Growth screen: consistency scores, compound projection chart,
+ * week-vs-week and month-vs-month charts (fetched from `/api/analytics`),
+ * and per-habit consistency bars.
+ * Delegates synchronous rendering to App.screens.growth module; handles
+ * the async analytics fetch inline.
+ *
+ * @@returns {Promise<void>}
+ */
 async function renderGrowth() {
     if (!state.user) { return; }
 
-    const u = state.user;
-    document.getElementById('growth-avatar').textContent = u.name[0].toUpperCase();
+    // Update avatar in header
+    const growthAvatar = document.getElementById('growth-avatar');
+    if (growthAvatar) { growthAvatar.textContent = state.user.name[0].toUpperCase(); }
 
-    // Consistency scores
-    const todayKey = today();
-    const completedTodayIds = (state.completions[todayKey] || []).map(String);
-    const total = state.habits.length;
-    const todayDone = completedTodayIds.filter(id => state.habits.some(h => String(h.id) === id)).length;
-    const csDaily = total ? Math.round((todayDone / total) * 100) : 0;
+    if (window.App) {
+        // Render synchronous sections (scores, projection, per-habit list)
+        App.screens.growth.updateGrowthScreen(state, null);
 
-    // Weekly consistency
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    let weekCompletions = 0;
-    let weekPossible = 0;
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(weekStart);
-        d.setDate(weekStart.getDate() + i);
-        const key = d.toISOString().slice(0, 10);
-        const done = (state.completions[key] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
-        weekCompletions += done;
-        weekPossible += total;
+        // Fetch analytics and inject week/month charts
+        try {
+            const data = await api('GET', '/api/analytics');
+            App.screens.growth.updateGrowthScreen(state, data);
+        } catch(e) { /* analytics unavailable — synchronous render already shown */ }
     }
-    const csWeekly = weekPossible ? Math.round((weekCompletions / weekPossible) * 100) : 0;
-
-    // Monthly consistency
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    let monthCompletions = 0;
-    let monthPossible = 0;
-    const today_date = new Date();
-    for (let i = 0; i < today_date.getDate(); i++) {
-        const d = new Date(monthStart);
-        d.setDate(monthStart.getDate() + i);
-        const key = d.toISOString().slice(0, 10);
-        const done = (state.completions[key] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
-        monthCompletions += done;
-        monthPossible += total;
-    }
-    const csMonthly = monthPossible ? Math.round((monthCompletions / monthPossible) * 100) : 0;
-
-    // All-time consistency
-    let allTimeCompletions = 0;
-    let allTimePossible = 0;
-    Object.keys(state.completions).forEach(date => {
-        const done = (state.completions[date] || []).filter(id => state.habits.some(h => String(h.id) === String(id))).length;
-        allTimeCompletions += done;
-        allTimePossible += total;
-    });
-    const csAllTime = allTimePossible ? Math.round((allTimeCompletions / allTimePossible) * 100) : 0;
-
-    document.getElementById('cs-daily').textContent = csDaily + '%';
-    document.getElementById('cs-weekly').textContent = csWeekly + '%';
-    document.getElementById('cs-monthly').textContent = csMonthly + '%';
-    document.getElementById('cs-alltime').textContent = csAllTime + '%';
-
-    // Compound growth projection
-    const rate = csAllTime / 100;
-    const multiplier = Math.pow(rate, 365);
-    const headline = rate > 0 ? `At ${csAllTime}% consistency, you compound to <strong>${Math.round(multiplier * 100)}x</strong> better in 365 days` : 'Track some habits to see your compound growth potential!';
-    document.getElementById('growth-projection-headline').innerHTML = headline;
-
-    // Projection chart
-    const points = [0, 90, 180, 270, 365];
-    const projChart = document.getElementById('growth-projection-chart');
-    const maxVal = rate > 0 ? Math.pow(rate, 365) : 1;
-    projChart.innerHTML = points.map(day => {
-        const val = day === 0 ? 1 : Math.pow(rate, day);
-        const height = maxVal > 0 ? Math.max(4, (val / maxVal) * 100) : 4;
-        return `<div class="compound-bar" style="height:${height}%"></div>`;
-    }).join('');
-
-    // Fetch analytics from server
-    try {
-        const data = await api('GET', '/api/analytics');
-
-        // Weekly rates
-        const weeklyRates = data.weeklyRates || [];
-        const weeklyChart = document.getElementById('growth-weekly-chart');
-        const maxWeekly = Math.max(...weeklyRates, 1);
-        weeklyChart.innerHTML = weeklyRates.map((rate, i) => {
-            const height = maxWeekly > 0 ? Math.max(4, (rate / maxWeekly) * 100) : 4;
-            return `<div class="compound-bar" style="height:${height}%"></div>`;
-        }).join('');
-
-        const weekLabels = document.getElementById('growth-weekly-labels');
-        weekLabels.innerHTML = ['4w ago', '3w ago', '2w ago', 'Last w', 'This w'].map(l => `<span>${l}</span>`).join('');
-
-        // Monthly rates
-        const monthlyRates = data.monthlyRates || [];
-        const monthlyChart = document.getElementById('growth-monthly-chart');
-        const maxMonthly = Math.max(...monthlyRates, 1);
-        monthlyChart.innerHTML = monthlyRates.map((rate, i) => {
-            const height = maxMonthly > 0 ? Math.max(4, (rate / maxMonthly) * 100) : 4;
-            return `<div class="compound-bar" style="height:${height}%"></div>`;
-        }).join('');
-    } catch(e) {
-        // Fallback if analytics unavailable
-    }
-
-    // Per-habit consistency
-    const habitsList = document.getElementById('growth-habits-list');
-    if (state.habits.length > 0) {
-        habitsList.innerHTML = state.habits.map(h => {
-            const allCompletions = Object.values(state.completions).filter(arr => arr.includes(String(h.id))).length;
-            const daysSinceCreated = Math.max(1, new Date().toISOString().slice(0, 10).localeCompare(h.createdAt) + 1);
-            const habitRate = Math.round((allCompletions / daysSinceCreated) * 100);
-            return `<div class="identity-item">
-                <div class="identity-icon">${h.emoji}</div>
-                <div class="identity-info">
-                    <div class="identity-name">${h.name}</div>
-                    <div class="identity-votes">${habitRate}% consistency</div>
-                    <div class="identity-bar"><div class="identity-bar-fill" style="width:${habitRate}%"></div></div>
-                </div>
-            </div>`;
-        }).join('');
-    } else {
-        habitsList.innerHTML = '<p style="color:#5A6180;font-size:.8rem;padding:.5rem 0;">Add habits to track consistency.</p>';
-    }
-}
-
-function calcOverallStreak() {
-    let streak = 0;
-    const d = new Date();
-    while (true) {
-        const key  = d.toISOString().slice(0, 10);
-        const comp = (state.completions[key] || []).filter(id => state.habits.some(h => String(h.id) === String(id)));
-        if (comp.length > 0) { streak++; d.setDate(d.getDate() - 1); }
-        else if (key === today()) { break; }
-        else { break; }
-    }
-    return streak;
 }
 
 // ══════════════════════════════════════════
 //  MILESTONE CELEBRATION
 // ══════════════════════════════════════════
+
+/**
+ * Show the full-screen milestone celebration overlay for a streak milestone.
+ * Delegates to App.overlays.milestone module.
+ *
+ * @@param {number}         value  Streak count (days or weeks).
+ * @@param {'days'|'weeks'} unit   Streak unit.
+ * @@returns {void}
+ */
 function showMilestone(value, unit) {
-    const isWeekly = unit === 'weeks';
-    const m = isWeekly
-        ? (WEEKLY_MILESTONES.find(x => x.weeks === value) || WEEKLY_MILESTONES[0])
-        : (MILESTONES.find(x => x.days === value) || MILESTONES[0]);
-    document.getElementById('milestone-emoji').textContent = m.emoji;
-    document.getElementById('milestone-title').textContent = m.title;
-    document.getElementById('milestone-sub').textContent   = m.sub;
-    document.getElementById('milestone-quote').textContent = `"${m.quote}"`;
-
-    const overlay = document.getElementById('milestone-overlay');
-    overlay.classList.add('visible');
-
-    // Enable dismiss button after animations complete
-    const dismissBtn = document.getElementById('milestone-dismiss-btn');
-    if (dismissBtn) {
-        dismissBtn.classList.remove('interactive');
-        setTimeout(() => dismissBtn.classList.add('interactive'), 550);
-    }
-
-    // Inject confetti particles around the emoji
-    const emojiEl = document.getElementById('milestone-emoji');
-    const confettiColors = ['#a78bfa', '#f97316', '#22c55e', '#f59e0b', '#ec4899'];
-    for (let i = 0; i < 8; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'confetti-particle';
-        const tx = (Math.random() * 160 - 80).toFixed(0) + 'px';
-        const ty = (Math.random() * 160 - 80).toFixed(0) + 'px';
-        particle.style.cssText = `--tx:${tx}; --ty:${ty}; background:${confettiColors[i % confettiColors.length]}; left:50%; top:50%; margin-left:-4px; margin-top:-4px;`;
-        emojiEl.appendChild(particle);
-    }
-    setTimeout(() => {
-        const particles = emojiEl.querySelectorAll('.confetti-particle');
-        particles.forEach(p => p.remove());
-    }, 600);
+    if (window.App) { App.overlays.milestone.showMilestone(value, unit); }
 }
 
+/**
+ * Dismiss the milestone / achievement celebration overlay.
+ *
+ * @@returns {void}
+ */
 function closeMilestone() {
-    const overlay = document.getElementById('milestone-overlay');
-    overlay.classList.remove('visible');
+    if (window.App) { App.overlays.milestone.closeMilestone(); }
 }
 
 // ══════════════════════════════════════════
 //  ACHIEVEMENT CELEBRATION
 // ══════════════════════════════════════════
+
+/**
+ * Re-use the milestone overlay to celebrate an achievement unlock.
+ * Delegates to App.overlays.milestone module.
+ *
+ * @@param {Object} achievement  Achievement record from the server (code + optional prestige flag).
+ * @@returns {void}
+ */
 function showAchievementCelebration(achievement) {
-    const def = ACHIEVEMENTS_DEFS[achievement.code];
-    if (!def) { return; }
-
-    document.getElementById('milestone-emoji').textContent = def.icon;
-    document.getElementById('milestone-title').textContent = def.name + '!';
-    document.getElementById('milestone-sub').textContent   = 'Achievement Unlocked';
-    document.getElementById('milestone-quote').textContent = def.desc;
-
-    const overlay = document.getElementById('milestone-overlay');
-    overlay.classList.add('visible');
-
-    const dismissBtn = document.getElementById('milestone-dismiss-btn');
-    if (dismissBtn) {
-        dismissBtn.textContent = def.prestige ? 'Prestige Earned! 🏆' : 'Unlocked! 🎉';
-        dismissBtn.classList.remove('interactive');
-        setTimeout(() => dismissBtn.classList.add('interactive'), 550);
-    }
-
-    // Confetti with prestige gold colors if applicable
-    const emojiEl = document.getElementById('milestone-emoji');
-    const confettiColors = def.prestige
-        ? ['#F59E0B', '#EAB308', '#FCD34D', '#FBBF24', '#a78bfa']
-        : ['#a78bfa', '#f97316', '#22c55e', '#f59e0b', '#ec4899'];
-    for (let i = 0; i < 12; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'confetti-particle';
-        const tx = (Math.random() * 200 - 100).toFixed(0) + 'px';
-        const ty = (Math.random() * 200 - 100).toFixed(0) + 'px';
-        particle.style.cssText = `--tx:${tx}; --ty:${ty}; background:${confettiColors[i % confettiColors.length]}; left:50%; top:50%; margin-left:-4px; margin-top:-4px;`;
-        emojiEl.appendChild(particle);
-    }
-    setTimeout(() => emojiEl.querySelectorAll('.confetti-particle').forEach(p => p.remove()), 600);
+    if (window.App) { App.overlays.milestone.showAchievementCelebration(achievement); }
 }
 
 // ══════════════════════════════════════════
 //  ACHIEVEMENTS SCREEN
 // ══════════════════════════════════════════
+
+/**
+ * Return a Date object for the Sunday at the start of the week containing `date`.
+ *
+ * @@param {Date} date
+ * @@returns {Date}
+ */
 function getWeekStart(date) {
     const d = new Date(date);
     d.setDate(d.getDate() - d.getDay());
@@ -2428,6 +2143,12 @@ function getWeekStart(date) {
     return d;
 }
 
+/**
+ * Render the Achievements screen, separating easy and prestige achievements
+ * into their respective sections.
+ *
+ * @@returns {void}
+ */
 function renderAchievements() {
     if (!state.user) { return; }
 
@@ -2456,6 +2177,15 @@ function renderAchievements() {
     });
 }
 
+/**
+ * Create and return an achievement card DOM element.
+ * Shows progress bars for trackable locked achievements.
+ *
+ * @@param {string}  code     Achievement code key from `ACHIEVEMENTS_DEFS`.
+ * @@param {Object}  def      Achievement definition object.
+ * @@param {boolean} unlocked Whether the achievement has been earned.
+ * @@returns {HTMLElement}
+ */
 function createAchievementCard(code, def, unlocked) {
     const card = document.createElement('div');
     card.className = `achievement-card ${unlocked ? 'unlocked' : 'locked'} ${def.prestige ? 'prestige' : ''}`;
@@ -2535,7 +2265,18 @@ function createAchievementCard(code, def, unlocked) {
 // ══════════════════════════════════════════
 //  TOAST
 // ══════════════════════════════════════════
+
+/** @type {number|undefined} setTimeout handle for auto-hiding the toast. */
 let toastTimer;
+
+/**
+ * Show a brief toast notification at the top of the screen.
+ * Auto-hides after 2.8 seconds. Cancels any in-progress toast.
+ *
+ * @@param {string} msg       Message text to display.
+ * @@param {string} [type]    Optional CSS modifier class, e.g. `'purple'`.
+ * @@returns {void}
+ */
 function showToast(msg, type = '') {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -2549,20 +2290,43 @@ function showToast(msg, type = '') {
 //  NOTIFICATIONS
 // ══════════════════════════════════════════
 
-// reminder state: { [habitId]: boolean } — stored in localStorage
+/**
+ * Load the reminder enabled/disabled map from localStorage.
+ *
+ * @@returns {Object<string|number, boolean>}  Map of habitId → enabled.
+ */
 function loadReminders() {
     try { return JSON.parse(localStorage.getItem('atomicme_reminders') || '{}'); } catch(e) { return {}; }
 }
+/**
+ * Persist the reminder map to localStorage.
+ *
+ * @@param {Object<string|number, boolean>} reminders
+ * @@returns {void}
+ */
 function saveReminders(reminders) {
     try { localStorage.setItem('atomicme_reminders', JSON.stringify(reminders)); } catch(e) {}
 }
 
+/**
+ * Detect whether the app is running inside a NativePHP Mobile WebView.
+ * NativePHP serves from 127.0.0.1 (no port); browser dev runs on localhost:8000.
+ *
+ * @@returns {boolean}
+ */
 function isNativeContext() {
     // NativePHP Mobile loads the app from 127.0.0.1 (embedded PHP server, no port).
     // The browser dev server runs on localhost:8000. Most reliable sync detection.
     return window.location.hostname === '127.0.0.1';
 }
 
+/**
+ * Return the current notification permission state.
+ * In a NativePHP WebView the browser Notification API is unavailable, so the
+ * native context is always treated as `'granted'`.
+ *
+ * @@returns {'granted'|'denied'|'default'|'unsupported'}
+ */
 function notificationPermission() {
     // In a NativePHP WebView the browser Notification API is unavailable, but local
     // notifications work through the native bridge. Treat native context as granted.
@@ -2571,6 +2335,13 @@ function notificationPermission() {
     return Notification.permission;
 }
 
+/**
+ * Request browser notification permission from the user.
+ * No-ops in a NativePHP context (permission is managed natively).
+ * On grant, re-schedules all reminders that were previously enabled.
+ *
+ * @@returns {Promise<boolean>}  `true` if permission was granted.
+ */
 async function requestNotificationPermission() {
     // In native context no browser permission dialog is needed — the bridge handles it.
     if (isNativeContext()) { return true; }
@@ -2600,7 +2371,13 @@ async function requestNotificationPermission() {
     }
 }
 
-// Also try the NativePHP bridge for native scheduling (fails silently in browser).
+/**
+ * Schedule a repeating local notification via the NativePHP native bridge.
+ * Fails silently if the native bridge is unavailable (browser context).
+ *
+ * @@param {Object} habit  Habit object; uses `habit.id`, `habit.emoji`, `habit.name`, `habit.time`.
+ * @@returns {Promise<void>}
+ */
 async function bridgeScheduleNotification(habit) {
     try {
         const timeLabel = getTimeLabel(habit.time);
@@ -2624,6 +2401,13 @@ async function bridgeScheduleNotification(habit) {
     } catch(e) { /* native API not available in browser — silently ignore */ }
 }
 
+/**
+ * Cancel a scheduled native notification via the NativePHP bridge.
+ * Fails silently if the native bridge is unavailable.
+ *
+ * @@param {string|number} habitId
+ * @@returns {Promise<void>}
+ */
 async function bridgeCancelNotification(habitId) {
     try {
         await fetch('/_native/api/call', {
@@ -2640,12 +2424,25 @@ async function bridgeCancelNotification(habitId) {
     } catch(e) { /* silently ignore */ }
 }
 
+/**
+ * Return a human-readable label for a time-of-day key.
+ *
+ * @@param {'morning'|'afternoon'|'evening'|'anytime'} time
+ * @@returns {string}
+ */
 function getTimeLabel(time) {
     const labels = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening', anytime: 'Daily' };
     return labels[time] || 'Daily';
 }
 
-// Returns a HH:MM string for the preferred time of day (used for display + native scheduling).
+/**
+ * Return the HH:MM notification time for a habit or a time-of-day key.
+ * Accepts either a habit object (checks `reminderTime` first, falls back to
+ * `time`) or a bare time string for backwards compatibility.
+ *
+ * @@param {Object|string} timeOrHabit  Habit object or time-of-day string.
+ * @@returns {string}  HH:MM string, e.g. `'08:00'`.
+ */
 function getNotificationTime(timeOrHabit) {
     // Support both habit object and time string for backwards compatibility
     if (typeof timeOrHabit === 'object' && timeOrHabit !== null) {
@@ -2657,6 +2454,14 @@ function getNotificationTime(timeOrHabit) {
     return times[timeOrHabit] || '09:00';
 }
 
+/**
+ * Schedule a local notification for a habit.
+ * Fires the native bridge schedule and (in browser) shows a Web Notification
+ * immediately as a demonstration.
+ *
+ * @@param {Object} habit  Habit object.
+ * @@returns {void}
+ */
 function scheduleLocalNotification(habit) {
     // Web Notifications API — shows immediately as a demonstration and schedules native if available.
     // In a real device context, the native bridge takes over repeating scheduling.
@@ -2673,10 +2478,23 @@ function scheduleLocalNotification(habit) {
     }
 }
 
+/**
+ * Cancel a previously scheduled local notification for a habit.
+ *
+ * @@param {string|number} habitId
+ * @@returns {void}
+ */
 function cancelLocalNotification(habitId) {
     bridgeCancelNotification(habitId);
 }
 
+/**
+ * Handle a change to the reminder time input on the Habit Detail screen.
+ * Persists the new time to state + backend and re-schedules the notification.
+ *
+ * @@param {string} time  New HH:MM time string from the `<input type="time">`.
+ * @@returns {Promise<void>}
+ */
 async function handleReminderTimeChange(time) {
     const id = currentDetailHabitId;
     if (!id) { return; }
@@ -2702,6 +2520,13 @@ async function handleReminderTimeChange(time) {
     }
 }
 
+/**
+ * Handle a change to the reminder toggle on the Habit Detail screen.
+ * Requests notification permission if enabling for the first time.
+ *
+ * @@param {boolean} enabled  `true` to enable, `false` to cancel the reminder.
+ * @@returns {Promise<void>}
+ */
 async function handleReminderToggle(enabled) {
     const id = currentDetailHabitId;
     if (!id) { return; }
@@ -2747,6 +2572,14 @@ async function handleReminderToggle(enabled) {
     renderDetailReminder(id);
 }
 
+/**
+ * Sync the reminder toggle and time input on the Habit Detail screen to
+ * the current persisted state for the given habit.
+ * Also shows/hides the permission banner based on current permission state.
+ *
+ * @@param {string|number} id  Habit ID.
+ * @@returns {void}
+ */
 function renderDetailReminder(id) {
     const habit = state.habits.find(h => String(h.id) === String(id));
     if (!habit) { return; }
@@ -2770,7 +2603,13 @@ function renderDetailReminder(id) {
     }
 }
 
-// Request permission after onboarding (best-effort, no-op if not supported).
+/**
+ * Show the home-screen notification permission banner after onboarding if
+ * permission has not yet been requested. Delayed 1.5 s so the home screen
+ * is visible first.
+ *
+ * @@returns {void}
+ */
 function maybeRequestNotificationPermissionAfterOnboarding() {
     if (notificationPermission() === 'default') {
         // Delay slightly so the user sees the home screen first
@@ -2785,7 +2624,12 @@ function maybeRequestNotificationPermissionAfterOnboarding() {
 //  WEEKLY REVIEW
 // ══════════════════════════════════════════
 
-// Returns the ISO date string for the most recent Monday (start of current week).
+/**
+ * Return the ISO date string for the most recent Monday (start of current week).
+ * Used as the `week_of` key for weekly reflection records.
+ *
+ * @@returns {string}  ISO date string e.g. `"2026-03-30"`.
+ */
 function currentWeekOf() {
     const d = new Date();
     const day = d.getDay(); // 0 = Sunday, 1 = Monday, ...
@@ -2794,15 +2638,31 @@ function currentWeekOf() {
     return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Load the last reviewed week ISO date string from localStorage.
+ *
+ * @@returns {string|null}
+ */
 function loadLastReviewedWeek() {
     try { return localStorage.getItem('atomicme_last_reviewed_week') || null; } catch(e) { return null; }
 }
 
+/**
+ * Persist the reviewed week date to localStorage.
+ *
+ * @@param {string} weekOf  ISO date string for the week start.
+ * @@returns {void}
+ */
 function saveLastReviewedWeek(weekOf) {
     try { localStorage.setItem('atomicme_last_reviewed_week', weekOf); } catch(e) {}
 }
 
-// Returns true if the weekly review overlay should appear.
+/**
+ * Determine whether the weekly review overlay should appear.
+ * Shows on Sunday or if it has been 7+ days since the last review.
+ *
+ * @@returns {boolean}
+ */
 function shouldShowWeeklyReview() {
     if (!state.user || state.habits.length === 0) { return false; }
 
@@ -2827,12 +2687,24 @@ function shouldShowWeeklyReview() {
     return false;
 }
 
+/**
+ * Show the weekly review overlay if `shouldShowWeeklyReview()` returns true.
+ * Delayed 1.2 s so the home screen renders first.
+ *
+ * @@returns {void}
+ */
 function maybeShowWeeklyReview() {
     if (!shouldShowWeeklyReview()) { return; }
     // Delay so it appears after home renders.
     setTimeout(openWeeklyReview, 1200);
 }
 
+/**
+ * Open the weekly review overlay and populate the habit completion summary
+ * for the current week.
+ *
+ * @@returns {void}
+ */
 function openWeeklyReview() {
     if (!state.user) { return; }
 
@@ -2866,16 +2738,32 @@ function openWeeklyReview() {
     document.getElementById('weekly-review-overlay').classList.add('show');
 }
 
+/**
+ * Close the weekly review overlay without saving.
+ *
+ * @@returns {void}
+ */
 function closeWeeklyReview() {
     document.getElementById('weekly-review-overlay').classList.remove('show');
 }
 
+/**
+ * Skip the weekly review: mark this week as reviewed and close the overlay.
+ *
+ * @@returns {void}
+ */
 function skipWeeklyReview() {
     saveLastReviewedWeek(currentWeekOf());
     closeWeeklyReview();
     showToast('Review skipped. See you next week!');
 }
 
+/**
+ * Save the weekly reflection note. Optimistically dismisses the overlay and
+ * marks the week as reviewed, then POSTs to `/api/reflections` in the background.
+ *
+ * @@returns {Promise<void>}
+ */
 async function saveWeeklyReview() {
     const note = document.getElementById('wr-note').value.trim();
     const weekOf = currentWeekOf();
@@ -2893,8 +2781,16 @@ async function saveWeeklyReview() {
 // ══════════════════════════════════════════
 //  PROFILE SHEET
 // ══════════════════════════════════════════
+
+/** @type {string|null} Currently selected identity key in the profile edit form. */
 let profileSelectedIdentity = null;
 
+/**
+ * Open the Profile Sheet, computing and populating all stats sections
+ * (days using app, total completions, longest streak, identity votes).
+ *
+ * @@returns {void}
+ */
 function openProfileSheet() {
     if (!state.user) { return; }
     const u = state.user;
@@ -2953,17 +2849,34 @@ function openProfileSheet() {
     document.getElementById('profile-sheet').classList.add('show');
 }
 
+/**
+ * Close the Profile Sheet and its backdrop.
+ *
+ * @@returns {void}
+ */
 function closeProfileSheet() {
     document.getElementById('profile-sheet-backdrop').classList.remove('show');
     document.getElementById('profile-sheet').classList.remove('show');
 }
 
+/**
+ * Select an identity option in the Profile Sheet edit form.
+ *
+ * @@param {HTMLElement} el  The clicked identity option element.
+ * @@returns {void}
+ */
 function selectProfileIdentity(el) {
     document.querySelectorAll('.profile-identity-option').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     profileSelectedIdentity = el.dataset.id;
 }
 
+/**
+ * Save profile edits (name + identity). Optimistically updates state and UI,
+ * then POSTs to `/api/setup` in the background.
+ *
+ * @@returns {Promise<void>}
+ */
 async function saveProfileChanges() {
     const name = document.getElementById('ps-name-input').value.trim();
     if (!name) { showToast('Please enter your name.'); return; }
@@ -2992,14 +2905,28 @@ async function saveProfileChanges() {
 // ══════════════════════════════════════════
 //  DELETE BOTTOM SHEET
 // ══════════════════════════════════════════
+
+/** @type {string|number|null} Habit ID staged for deletion in the delete sheet. */
 let pendingDeleteId = null;
 
+/**
+ * Open the delete confirmation bottom sheet for a habit.
+ *
+ * @@param {string|number} habitId    Habit ID to stage for deletion.
+ * @@param {string}        habitName  Habit name shown in the confirmation title.
+ * @@returns {void}
+ */
 function showDeleteSheet(habitId, habitName) {
     pendingDeleteId = habitId;
     document.getElementById('delete-sheet-title').textContent = `Delete "${habitName}"?`;
     document.getElementById('delete-sheet').style.display = 'flex';
 }
 
+/**
+ * Close the delete confirmation sheet without deleting.
+ *
+ * @@returns {void}
+ */
 function closeDeleteSheet() {
     pendingDeleteId = null;
     document.getElementById('delete-sheet').style.display = 'none';
@@ -3013,8 +2940,16 @@ document.getElementById('delete-sheet-confirm').addEventListener('click', () => 
 // ══════════════════════════════════════════
 //  NOTE SHEET
 // ══════════════════════════════════════════
+
+/** @type {Object|null} Data for the note sheet: { habitId } while open, null when closed. */
 let pendingNoteData = null;
 
+/**
+ * Open the completion note input sheet for a habit.
+ *
+ * @@param {string|number} habitId  Habit the note is associated with.
+ * @@returns {void}
+ */
 function openNoteSheet(habitId) {
     pendingNoteData = { habitId };
     document.getElementById('note-input').value = '';
@@ -3022,12 +2957,23 @@ function openNoteSheet(habitId) {
     document.getElementById('note-sheet').style.display = 'flex';
 }
 
+/**
+ * Close the note sheet without saving.
+ *
+ * @@returns {void}
+ */
 function closeNoteSheet() {
     pendingNoteData = null;
     document.getElementById('note-sheet-backdrop').style.display = 'none';
     document.getElementById('note-sheet').style.display = 'none';
 }
 
+/**
+ * Save the completion note from the note sheet. Optimistically updates
+ * `state.completionNotes`, closes the sheet, then POSTs to `/api/completions/note`.
+ *
+ * @@returns {Promise<void>}
+ */
 async function saveNote() {
     if (!pendingNoteData) { return; }
 
@@ -3065,6 +3011,12 @@ async function saveNote() {
     }
 }
 
+/**
+ * Prompt the user to confirm a full data reset, then DELETE `/api/reset`,
+ * clear localStorage, wipe state, and navigate to onboarding.
+ *
+ * @@returns {Promise<void>}
+ */
 async function confirmResetData() {
     const confirmed = confirm('Are you sure? This will delete all your habits and progress. This cannot be undone.');
     if (!confirmed) { return; }
@@ -3082,6 +3034,40 @@ async function confirmResetData() {
     closeProfileSheet();
     showScreen('screen-onboarding');
 }
+
+// ══════════════════════════════════════════
+//  EVENT DELEGATION — data-action handlers
+//
+//  Modules rendered by App.screens.home.updateHabitsList() use
+//  data-action attributes instead of inline onclick. A single delegated
+//  listener on document handles all these actions.
+// ══════════════════════════════════════════
+
+document.addEventListener('click', function(e) {
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) { return; }
+    const action  = actionEl.dataset.action;
+    const habitId = actionEl.dataset.habitId;
+
+    switch (action) {
+        case 'toggle-habit':
+            if (habitId) { toggleHabit(habitId); }
+            break;
+        case 'show-detail':
+            e.stopPropagation();
+            if (habitId) { showHabitDetail(habitId); }
+            break;
+        case 'go-add':
+            showScreen('screen-add');
+            break;
+        case 'open-profile':
+            openProfileSheet();
+            break;
+        case 'request-notifications':
+            requestNotificationPermission();
+            break;
+    }
+});
 </script>
 </body>
 </html>
