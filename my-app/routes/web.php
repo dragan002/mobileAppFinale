@@ -23,6 +23,7 @@ Route::prefix('api')->group(function () {
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
     Route::post('/completions/toggle', [CompletionController::class, 'toggle']);
+    Route::post('/completions/note', [CompletionController::class, 'saveNote']);
     Route::post('/reflections', [ReflectionController::class, 'store']);
     Route::delete('/reset', [ResetController::class, 'destroy']);
 });

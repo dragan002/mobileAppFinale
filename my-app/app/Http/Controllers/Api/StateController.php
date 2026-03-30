@@ -26,13 +26,18 @@ class StateController extends Controller
         $since = Carbon::today()->subDays(89)->format('Y-m-d');
         $completionRows = HabitCompletion::where('completed_date', '>=', $since)
             ->orderBy('completed_date')
-            ->get(['habit_id', 'completed_date']);
+            ->get(['habit_id', 'completed_date', 'note']);
 
         // Format: { 'YYYY-MM-DD': [habitId, ...] }
         $completionsMap = [];
+        $completionNotes = []; // Format: { 'YYYY-MM-DD:habitId': 'note text' }
         foreach ($completionRows as $c) {
             $date = Carbon::parse($c->completed_date)->format('Y-m-d');
             $completionsMap[$date][] = $c->habit_id;
+
+            if ($c->note) {
+                $completionNotes["{$date}:{$c->habit_id}"] = $c->note;
+            }
         }
 
         // Current streaks and best streaks per habit
@@ -61,6 +66,7 @@ class StateController extends Controller
             ],
             'habits' => $habits->map->toApiArray()->values(),
             'completions' => $completionsMap,
+            'completionNotes' => $completionNotes,
             'streaks' => $streaks,
             'bestStreaks' => $bestStreaks,
             'categories' => $categories->map->toApiArray()->values(),

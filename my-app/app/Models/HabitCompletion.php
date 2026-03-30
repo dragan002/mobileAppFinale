@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HabitCompletion extends Model
 {
-    protected $fillable = ['habit_id', 'completed_date'];
+    protected $fillable = ['habit_id', 'completed_date', 'note'];
 
     protected function casts(): array
     {

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#0F1221">
+    <title>AtomicMe — Redesign</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-primary: #0F1221;
+            --bg-card: #1A1F35;
+            --bg-elevated: #242B45;
+            --border: #2A3152;
+            --text-primary: #EAEDF6;
+            --text-secondary: #8B92AB;
+            --text-muted: #5A6180;
+            --accent: #A855F7;
+            --accent-light: #C084FC;
+            --success: #34D399;
+            --danger: #EF4444;
+            --streak: #F97316;
+            --gradient-start: #7C3AED;
+            --gradient-end: #DB2777;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .screen {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            overflow-y: auto;
+            opacity: 0; pointer-events: none;
+            transform: translateX(24px);
+            transition: opacity 0.28s ease-out, transform 0.28s ease-out;
+        }
+        .screen.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+
+        ::-webkit-scrollbar { display: none; }
+        * { -webkit-tap-highlight-color: transparent; scrollbar-width: none; }
+
+        .app-header {
+            padding: 1.25rem 1.25rem 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .header-greeting h2 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .header-greeting p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .avatar {
+            width: 2.5rem; height: 2.5rem; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.875rem;
+            flex-shrink: 0; cursor: pointer;
+        }
+
+        .progress-card {
+            margin: 0 1.25rem 1.25rem;
+            background: linear-gradient(135deg, #5b21b6 0%, var(--gradient-start) 50%, var(--gradient-end) 100%);
+            border-radius: 1.25rem; padding: 1.25rem;
+            position: relative; overflow: hidden;
+        }
+        .progress-card::before {
+            content: ''; position: absolute; top: -30px; right: -30px;
+            width: 100px; height: 100px;
+            background: rgba(255,255,255,0.07); border-radius: 50%;
+        }
+        .progress-card::after {
+            content: ''; position: absolute; bottom: -40px; left: -10px;
+            width: 130px; height: 130px;
+            background: rgba(255,255,255,0.05); border-radius: 50%;
+        }
+
+        .identity-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.15); border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 0.75rem; font-weight: 600;
+            margin-bottom: 1rem;
+            position: relative; z-index: 1;
+        }
+
+        .progress-label {
+            font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 0.12em; opacity: 0.7; margin-bottom: 6px;
+            position: relative; z-index: 1;
+        }
+        .progress-numbers {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.0;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+            position: relative; z-index: 1;
+        }
+        .progress-numbers span {
+            font-size: 1rem; font-weight: 400; opacity: 0.7;
+        }
+        .progress-bar-wrap {
+            background: rgba(255,255,255,0.2);
+            border-radius: 999px; height: 10px;
+            margin-top: 1rem; position: relative; z-index: 1;
+        }
+        .progress-bar-fill {
+            background: var(--accent-light);
+            border-radius: 999px; height: 10px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 8px rgba(192,132,252,0.4), 0 0 16px rgba(168,85,247,0.2);
+        }
+        .progress-sub {
+            font-size: 0.75rem; opacity: 0.7;
+            margin-top: 0.5rem; position: relative; z-index: 1;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .progress-card.all-done {
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 25%, #1a0a2e 50%, #2d1b4e 75%, #1a0a2e 100%);
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.25rem; margin-bottom: 1rem;
+        }
+        .section-title {
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-secondary);
+        }
+
+        .habits-list {
+            padding: 0 1.25rem;
+            display: flex; flex-direction: column; gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .habit-item {
+            display: flex; align-items: center; gap: 1rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem; min-height: 4.5rem;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.3s;
+            cursor: pointer; position: relative;
+        }
+
+        .habit-item.completed {
+            background: #0d1a14; border-color: #1a3024;
+            border-left: 3px solid var(--success);
+            padding-left: calc(1rem - 3px);
+        }
+        .habit-item.completed .habit-name { opacity: 0.5; }
+
+        .habit-item.at-risk { border-color: rgba(249,115,22,0.25); background: #14100a; }
+
+        .habit-item.streak-high {
+            border-left: 3px solid #a78bfa;
+            padding-left: calc(1rem - 3px);
+        }
+
+        .habit-icon-wrap {
+            width: 3rem; height: 3rem; border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; flex-shrink: 0;
+        }
+
+        .habit-info { flex: 1; min-width: 0; }
+        .habit-name {
+            font-size: 0.875rem; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .habit-meta {
+            font-size: 0.75rem; color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .habit-streak {
+            font-size: 0.75rem; font-weight: 700;
+            color: var(--streak); margin-top: 4px;
+        }
+        .habit-streak.grace-day-text { color: var(--accent); }
+
+        .habit-check {
+            width: 3.5rem; height: 3.5rem; border-radius: 50%;
+            border: 2.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: background 150ms ease-out, transform 200ms ease-out, border-color 150ms;
+            cursor: pointer; position: relative;
+        }
+
+        .habit-item.completed .habit-check {
+            background: var(--success); border-color: var(--success);
+            box-shadow: 0 0 12px rgba(52,211,153,0.3);
+        }
+        .habit-item.completed .habit-check .check-svg {
+            opacity: 1; transform: scale(1);
+        }
+
+        .check-svg {
+            width: 18px; height: 18px;
+            opacity: 0; transform: scale(0);
+            transition: opacity 150ms ease-out 100ms, transform 200ms cubic-bezier(0.34,1.56,0.64,1) 100ms;
+        }
+
+        .habit-check::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 2px solid var(--success);
+            transform: translate(-50%,-50%) scale(0.8); opacity: 0;
+            pointer-events: none;
+        }
+        .habit-check.ripple::before {
+            animation: ripple-out 400ms ease-out forwards;
+        }
+        @keyframes ripple-out {
+            0%   { transform: translate(-50%,-50%) scale(0.8); opacity: 0.6; }
+            100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+        }
+
+        @keyframes completion-glow {
+            0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+            40%  { box-shadow: 0 0 0 6px rgba(52,211,153,0.15); }
+            100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+        }
+        .habit-item.glow-pulse {
+            animation: completion-glow 600ms ease-out forwards;
+        }
+
+        .add-habit-btn {
+            margin: 0 1.25rem;
+            width: calc(100% - 2.5rem);
+            padding: 1rem; min-height: 3.5rem;
+            background: transparent;
+            border: 2px dashed var(--border); border-radius: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem; font-family: inherit; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .add-habit-btn:active { border-color: var(--accent); color: var(--accent-light); }
+
+        .daily-quote {
+            margin: 1rem 1.25rem 0;
+            padding: 14px 1rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 0.75rem 0.75rem 0;
+            font-size: 0.75rem; color: var(--text-secondary);
+            line-height: 1.7; font-style: italic;
+        }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg-elevated);
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 8px 0 max(12px, env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 0.65rem; font-weight: 500;
+            color: var(--text-muted); cursor: pointer;
+            padding: 8px 20px; border-radius: 999px;
+            transition: color 0.2s, background 0.2s;
+            min-width: 64px; min-height: 48px;
+            justify-content: center;
+        }
+        .nav-item.active {
+            color: var(--accent-light);
+            background: rgba(168,85,247,0.12);
+        }
+        .nav-icon { width: 24px; height: 24px; }
+        .nav-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+        .toast {
+            position: fixed; top: 1rem; left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background: var(--success); color: #fff;
+            padding: 12px 24px; border-radius: 999px;
+            font-size: 0.875rem; font-weight: 600;
+            z-index: 998; transition: transform 0.3s;
+            white-space: nowrap; max-width: calc(100% - 2rem); text-align: center;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        #screen-home { padding-bottom: 5rem; }
+
+        /* DETAIL SCREEN */
+        .detail-header {
+            padding: 1.25rem;
+            display: flex; align-items: center; gap: 1rem;
+            border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .back-btn {
+            width: 40px; height: 40px;
+            background: var(--bg-elevated); border: none; border-radius: 10px;
+            color: var(--text-primary); font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .detail-header h2 {
+            font-size: 1.125rem; font-weight: 700;
+            flex: 1; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .detail-edit-btn {
+            background: none; border: none; color: var(--accent-light);
+            font-size: 0.875rem; font-weight: 600;
+            cursor: pointer; padding: 4px 8px;
+        }
+
+        .detail-body { flex: 1; overflow-y: auto; padding-bottom: 2rem; }
+
+        .streak-hero {
+            text-align: center; padding: 2rem 1.25rem 1.5rem;
+            position: relative;
+        }
+        .streak-fire { font-size: 3.5rem; margin-bottom: 4px; line-height: 1; }
+        .streak-count-num {
+            font-size: 5rem; font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1; letter-spacing: -2px;
+            font-variant-numeric: tabular-nums;
+        }
+        .streak-label {
+            font-size: 1rem; font-weight: 500;
+            color: var(--text-secondary); margin-top: 6px;
+        }
+        .milestone-badge-display {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.13), rgba(219,39,119,0.13));
+            border: 1px solid rgba(124,58,237,0.33);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.75rem; font-weight: 600;
+            color: #a78bfa; margin-top: 14px;
+        }
+
+        @keyframes streak-pulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(168,85,247,0.08); }
+            50% { box-shadow: 0 0 60px rgba(168,85,247,0.15); }
+        }
+        .streak-hero.hot::after {
+            content: ''; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 160px; height: 160px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
+            animation: streak-pulse 3s ease-in-out infinite;
+            pointer-events: none; z-index: -1;
+        }
+
+        .stats-row {
+            display: flex; gap: 1rem;
+            padding: 0 1.25rem; margin-bottom: 1rem;
+        }
+        .stat-box {
+            flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1rem; padding: 1rem; text-align: center;
+        }
+        .stat-box .val {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--accent-light), #ec4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-variant-numeric: tabular-nums; font-weight: 700;
+        }
+        .stat-box .lbl {
+            font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;
+        }
+
+        .heatmap-wrap { padding: 0 1.25rem; margin-bottom: 1rem; }
+        .heatmap-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1rem; padding: 1rem;
+        }
+        .heatmap-card h3 {
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        .heatmap-grid { display: flex; gap: 3px; }
+        .heatmap-col { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .heatmap-cell {
+            width: 100%; aspect-ratio: 1; border-radius: 3px;
+            background: var(--bg-elevated);
+        }
+        .heatmap-cell.done { background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); }
+        .heatmap-cell.today { outline: 2px solid var(--accent-light); outline-offset: 1px; }
+
+        .insight-card {
+            margin: 0 1.25rem 1rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 0.75rem 0.75rem 0;
+            padding: 14px 1rem;
+            font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;
+        }
+        .insight-card strong { color: var(--text-primary); }
+
+        .setup-card {
+            margin: 0 1.25rem 1rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1rem; padding: 1rem;
+        }
+        .setup-card-title {
+            font-size: 0.75rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+        .setup-field { margin-bottom: 1rem; }
+        .setup-field:last-child { margin-bottom: 0; }
+        .setup-field-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; }
+        .setup-field-value { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; }
+
+        .detail-action-row {
+            position: sticky; bottom: 0;
+            padding: 1rem 1.25rem 1.5rem;
+            background: linear-gradient(to top, var(--bg-primary) 80%, transparent);
+        }
+        .btn-complete {
+            width: 100%; padding: 1rem; min-height: 3.5rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none; border-radius: 14px;
+            color: #fff; font-size: 1rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-complete.is-done {
+            background: #1a3024; color: var(--success);
+            border: 2px solid rgba(52,211,153,0.27);
+        }
+        .btn-complete:active { opacity: 0.85; transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="screen-home">
+    <div class="app-header">
+        <div class="header-greeting">
+            <h2>Good morning, Alex</h2>
+            <p>Sunday, March 29</p>
+        </div>
+        <div class="avatar">A</div>
+    </div>
+
+    <div class="progress-card" id="progress-card">
+        <div class="identity-badge">🏃 Becoming The Athlete</div>
+        <div class="progress-label">Today's Progress</div>
+        <div class="progress-numbers"><span id="done-count">2</span> <span>/ <span id="total-count">5</span> habits</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:40%"></div></div>
+        <div class="progress-sub" id="progress-sub">3 habits to go -- you can do this!</div>
+    </div>
+
+    <div class="section-header">
+        <span class="section-title">Today's Habits</span>
+    </div>
+
+    <div class="habits-list" id="habits-list">
+        <div class="habit-item completed streak-high" id="item-1" onclick="toggleHabit(1)">
+            <div class="habit-icon-wrap" style="background:#1e3a2f">🏃</div>
+            <div class="habit-info">
+                <div class="habit-name">Morning Run</div>
+                <div class="habit-meta">20 minutes &middot; Morning</div>
+                <div class="habit-streak">🔥🔥 18 day streak</div>
+            </div>
+            <div class="habit-check" id="check-1">
+                <svg class="check-svg" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 9 7.5 13 14.5 5"/></svg>
+            </div>
+        </div>
+
+        <div class="habit-item completed" id="item-2" onclick="toggleHabit(2)">
+            <div class="habit-icon-wrap" style="background:#1e1a3a">📚</div>
+            <div class="habit-info">
+                <div class="habit-name">Read 10 Pages</div>
+                <div class="habit-meta">Daily &middot; Evening</div>
+                <div class="habit-streak">🔥 4 day streak</div>
+            </div>
+            <div class="habit-check" id="check-2">
+                <svg class="check-svg" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 9 7.5 13 14.5 5"/></svg>
+            </div>
+        </div>
+
+        <div class="habit-item at-risk streak-high" id="item-3" onclick="toggleHabit(3)">
+            <div class="habit-icon-wrap" style="background:#1a3a3a">🧘</div>
+            <div class="habit-info">
+                <div class="habit-name">Meditate</div>
+                <div class="habit-meta">10 minutes &middot; Morning</div>
+                <div class="habit-streak" style="color: #F97316;">🔥🔥🔥 32 day streak &middot; at risk!</div>
+            </div>
+            <div class="habit-check" id="check-3">
+                <svg class="check-svg" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 9 7.5 13 14.5 5"/></svg>
+            </div>
+        </div>
+
+        <div class="habit-item" id="item-4" onclick="toggleHabit(4)">
+            <div class="habit-icon-wrap" style="background:#1a2a3a">💧</div>
+            <div class="habit-info">
+                <div class="habit-name">Drink 8 Glasses</div>
+                <div class="habit-meta">Daily &middot; Anytime</div>
+            </div>
+            <div class="habit-check" id="check-4">
+                <svg class="check-svg" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 9 7.5 13 14.5 5"/></svg>
+            </div>
+        </div>
+
+        <div class="habit-item" id="item-5" onclick="toggleHabit(5)">
+            <div class="habit-icon-wrap" style="background:#3a1a3a">✍️</div>
+            <div class="habit-info">
+                <div class="habit-name">Journal 5 Min</div>
+                <div class="habit-meta">5 minutes &middot; Evening</div>
+                <div class="habit-streak grace-day-text">🔥 9 day streak &middot; grace day active</div>
+            </div>
+            <div class="habit-check" id="check-5">
+                <svg class="check-svg" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 9 7.5 13 14.5 5"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <button class="add-habit-btn">+ Add New Habit</button>
+
+    <div class="daily-quote">"You do not rise to the level of your goals. You fall to the level of your systems." — James Clear</div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showScreen('screen-home')">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+            <span>Today</span>
+        </div>
+        <div class="nav-item" onclick="showScreen('screen-home')">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></span>
+            <span>Stats</span>
+        </div>
+        <div class="nav-item" onclick="showScreen('screen-home')">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <span>Growth</span>
+        </div>
+    </nav>
+</div>
+
+<!-- DETAIL SCREEN -->
+<div class="screen" id="screen-detail">
+    <div class="detail-header">
+        <button class="back-btn" onclick="showScreen('screen-home')">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 14 6 9 11 4"/></svg>
+        </button>
+        <h2>🏃 Morning Run</h2>
+        <button class="detail-edit-btn">Edit</button>
+    </div>
+
+    <div class="detail-body">
+        <div class="streak-hero hot">
+            <div class="streak-fire">🔥🔥</div>
+            <div class="streak-count-num">18</div>
+            <div class="streak-label">day streak</div>
+            <div class="milestone-badge-display">🔥 On Fire -- 14 days</div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-box"><div class="val">18</div><div class="lbl">Best Streak</div></div>
+            <div class="stat-box"><div class="val">42</div><div class="lbl">Total Done</div></div>
+            <div class="stat-box"><div class="val">87%</div><div class="lbl">30-day Rate</div></div>
+        </div>
+
+        <div class="heatmap-wrap">
+            <div class="heatmap-card">
+                <h3>Last 12 Weeks</h3>
+                <div class="heatmap-grid" id="detail-heatmap"></div>
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <strong>Two weeks of consistency!</strong> Around day 18, automaticity starts to kick in. Your brain is literally rewiring itself for Morning Run.
+        </div>
+
+        <div class="setup-card">
+            <div class="setup-card-title">Your Setup</div>
+            <div class="setup-field">
+                <div class="setup-field-label">Your Why</div>
+                <div class="setup-field-value">I want to feel strong and energized every morning.</div>
+            </div>
+            <div class="setup-field">
+                <div class="setup-field-label">2-Minute Version</div>
+                <div class="setup-field-value">Put on running shoes and step outside.</div>
+            </div>
+            <div class="setup-field">
+                <div class="setup-field-label">Habit Stack</div>
+                <div class="setup-field-value">After I brush my teeth...</div>
+            </div>
+            <div class="setup-field">
+                <div class="setup-field-label">Your Reward</div>
+                <div class="setup-field-value">A nice coffee from the kitchen.</div>
+            </div>
+        </div>
+
+        <div class="detail-action-row">
+            <button class="btn-complete is-done" id="detail-btn" onclick="toggleDetail()">Completed Today!</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const habitState = { 1: true, 2: true, 3: false, 4: false, 5: false };
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function toggleHabit(id) {
+    const item = document.getElementById('item-' + id);
+    const check = document.getElementById('check-' + id);
+    const wasCompleted = habitState[id];
+
+    habitState[id] = !wasCompleted;
+
+    if (!wasCompleted) {
+        item.classList.add('completed');
+        item.classList.remove('at-risk');
+        check.classList.add('ripple');
+        setTimeout(() => check.classList.remove('ripple'), 400);
+        item.classList.add('glow-pulse');
+        setTimeout(() => item.classList.remove('glow-pulse'), 600);
+        showToast(getHabitName(id) + ' done!');
+    } else {
+        item.classList.remove('completed');
+    }
+
+    updateProgress();
+}
+
+function getHabitName(id) {
+    const names = { 1: '🏃 Morning Run', 2: '📚 Read 10 Pages', 3: '🧘 Meditate', 4: '💧 Drink Water', 5: '✍️ Journal' };
+    return names[id] || 'Habit';
+}
+
+function updateProgress() {
+    const done = Object.values(habitState).filter(v => v).length;
+    const total = 5;
+    const pct = Math.round((done / total) * 100);
+
+    document.getElementById('done-count').textContent = done;
+    document.getElementById('progress-bar').style.width = pct + '%';
+
+    const card = document.getElementById('progress-card');
+    if (done === total) {
+        card.classList.add('all-done');
+        document.getElementById('progress-sub').textContent = 'All done! Perfect day. Keep the chain going!';
+    } else {
+        card.classList.remove('all-done');
+        document.getElementById('progress-sub').textContent = (total - done) + ' habit' + (total - done > 1 ? 's' : '') + ' to go -- you can do this!';
+    }
+}
+
+function toggleDetail() {
+    const btn = document.getElementById('detail-btn');
+    if (btn.classList.contains('is-done')) {
+        btn.classList.remove('is-done');
+        btn.textContent = 'Complete for Today';
+    } else {
+        btn.classList.add('is-done');
+        btn.textContent = 'Completed Today!';
+        showToast('🏃 Morning Run done!');
+    }
+}
+
+let toastTimer;
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function renderHeatmap() {
+    const container = document.getElementById('detail-heatmap');
+    const todayStr = new Date().toISOString().slice(0, 10);
+    let html = '';
+
+    for (let w = 0; w < 12; w++) {
+        html += '<div class="heatmap-col">';
+        for (let d = 6; d >= 0; d--) {
+            const offset = (11 - w) * 7 + d;
+            const date = new Date();
+            date.setDate(date.getDate() - offset);
+            const dateStr = date.toISOString().slice(0, 10);
+            const isToday = dateStr === todayStr;
+            const done = Math.random() < 0.87 && offset > 0;
+            html += '<div class="heatmap-cell ' + (done ? 'done' : '') + (isToday ? ' today' : '') + '"></div>';
+        }
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+renderHeatmap();
+</script>
+</body>
+</html>

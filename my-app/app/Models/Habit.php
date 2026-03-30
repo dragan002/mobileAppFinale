@@ -98,8 +98,62 @@ class Habit extends Model
         return $best;
     }
 
+    public function calculatePhase(): array
+    {
+        $streak = $this->calculateStreak();
+        $daysSinceCreation = $this->created_at->diffInDays(Carbon::today());
+
+        // Calculate consistency rate (completions in last 90 days / 90)
+        $recentCompletions = $this->completions()
+            ->where('completed_date', '>=', Carbon::today()->subDays(90))
+            ->count();
+        $consistencyRate = min($recentCompletions / 90, 1.0);
+
+        // Determine phase based on days and consistency
+        if ($daysSinceCreation <= 14) {
+            return [
+                'phase' => 'initiation',
+                'label' => 'Getting Started',
+                'description' => 'You\'re building the neural pathway. Every rep matters.',
+                'daysSinceCreation' => $daysSinceCreation,
+                'icon' => '🌱',
+            ];
+        } elseif ($daysSinceCreation <= 40) {
+            // Struggle phase - the valley of disappointment
+            return [
+                'phase' => 'struggle',
+                'label' => 'The Struggle',
+                'description' => 'This is the valley of disappointment. Most people quit here. You haven\'t.',
+                'daysSinceCreation' => $daysSinceCreation,
+                'icon' => '⛰️',
+            ];
+        } elseif ($daysSinceCreation <= 66 || $consistencyRate < 0.75) {
+            // Autopilot approach - consistency is building
+            return [
+                'phase' => 'autopilot',
+                'label' => 'Autopilot Approaching',
+                'description' => 'Your consistency rate is climbing. The habit is taking root.',
+                'daysSinceCreation' => $daysSinceCreation,
+                'consistencyRate' => round($consistencyRate * 100),
+                'icon' => '🚀',
+            ];
+        } else {
+            // Identity phase - it's who you are
+            return [
+                'phase' => 'identity',
+                'label' => 'Identity',
+                'description' => 'This isn\'t something you do. It\'s who you are.',
+                'daysSinceCreation' => $daysSinceCreation,
+                'consistencyRate' => round($consistencyRate * 100),
+                'icon' => '⭐',
+            ];
+        }
+    }
+
     public function toApiArray(): array
     {
+        $phase = $this->calculatePhase();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -116,6 +170,7 @@ class Habit extends Model
             'createdAt' => $this->created_at->format('Y-m-d'),
             'categoryId' => $this->category_id,
             'reminderTime' => $this->reminder_time ?? '',
+            'phase' => $phase,
         ];
     }
 }

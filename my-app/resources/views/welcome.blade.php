@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#0F1221">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,10 +11,10 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; background: #0F1221; color: #EAEDF6; overflow: hidden; }
+        html, body { height: 100%; font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; background: #0F1221; color: #EAEDF6; overflow: hidden; max-width: 100vw; overflow-x: hidden; }
 
         /* ── SCREENS ── */
-        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateX(30px); transition: opacity .3s, transform .3s; }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; opacity: 0; pointer-events: none; transform: translateX(30px); transition: opacity .3s, transform .3s; }
         .screen.active { opacity: 1; pointer-events: all; transform: translateX(0); }
         .screen.slide-left { transform: translateX(-30px); }
 
@@ -44,7 +44,7 @@
         .identity-card:nth-child(6) { animation-delay: 250ms; }
         .identity-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .identity-card .label { font-size: 0.85rem; font-weight: 600; color: #EAEDF6; }
-        .identity-card .sub { font-size: 0.7rem; color: #5A6180; margin-top: 0.2rem; }
+        .identity-card .sub { font-size: 0.7rem; color: #8B92AB; margin-top: 0.2rem; }
         .ob-name-wrap { margin-bottom: 1.5rem; }
         .ob-name-wrap label { font-size: 0.8rem; color: #8B92AB; display: block; margin-bottom: 0.5rem; }
         .ob-name-wrap input { width: 100%; background: #1A1F35; border: 2px solid #2A3152; border-radius: 0.75rem; padding: 0.875rem 1rem; color: #EAEDF6; font-size: 1rem; font-family: inherit; outline: none; }
@@ -54,10 +54,10 @@
         .btn-primary:disabled { opacity: 0.4; cursor: default; }
 
         /* ── MAIN APP ── */
-        #screen-home, #screen-stats, #screen-add { padding-bottom: 5rem; }
+        #screen-home, #screen-stats, #screen-add, #screen-growth { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); padding-top: env(safe-area-inset-top, 0); }
 
         /* Header */
-        .app-header { padding: 1.25rem 1.25rem 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .app-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 0.75rem; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .header-greeting h2 { font-size: 1.3rem; font-weight: 700; }
         .header-greeting p { font-size: 0.75rem; color: #8B92AB; margin-top: 0.1rem; }
         .avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #db2777); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; cursor: pointer; }
@@ -161,14 +161,14 @@
           align-items: center;
         }
         .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
-        .empty-state p { color: #5A6180; font-size: 0.875rem; }
+        .empty-state p { color: #8B92AB; font-size: 0.875rem; }
 
         /* Daily quote */
         .daily-quote { margin: 0.75rem 1.25rem 0; padding: 0.875rem 1rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; font-size: 0.75rem; color: #8B92AB; line-height: 1.6; font-style: italic; }
 
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.75rem 0 max(1.1rem, env(safe-area-inset-bottom)); z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #5A6180; cursor: pointer; padding: 0.5rem 1.25rem; transition: color .2s; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #8B92AB; cursor: pointer; padding: 0.75rem 1.25rem; min-height: 44px; min-width: 44px; transition: color .2s; }
         .nav-item.active { color: #C084FC; }
         .nav-icon { font-size: 1.5rem; }
 
@@ -184,9 +184,9 @@
         }
 
         /* ── ADD HABIT SCREEN ── */
-        #screen-add { background: #0F1221; padding: 0; }
-        .add-header { padding: 1.25rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
-        .back-btn { width: 2.25rem; height: 2.25rem; background: #242B45; border: none; border-radius: 0.625rem; color: #EAEDF6; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #screen-add { background: #0F1221; padding: 0; padding-bottom: 5.5rem; }
+        .add-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
+        .back-btn { width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px; background: #242B45; border: none; border-radius: 0.625rem; color: #EAEDF6; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .add-header h2 { font-size: 1.1rem; font-weight: 700; flex: 1; }
         .add-body { padding: 1.25rem; flex: 1; overflow-y: auto; }
 
@@ -204,7 +204,7 @@
         .form-label { font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem; display: block; }
         .form-input { width: 100%; background: #1A1F35; border: 2px solid #2A3152; border-radius: 0.75rem; padding: 0.875rem 1rem; color: #EAEDF6; font-size: 0.92rem; font-family: inherit; outline: none; transition: border-color .2s; }
         .form-input:focus { border-color: #A855F7; }
-        .form-input::placeholder { color: #5A6180; }
+        .form-input::placeholder { color: #8B92AB; }
         textarea.form-input { resize: none; height: 80px; }
 
         .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; }
@@ -237,18 +237,22 @@
 
         /* ── STATS SCREEN ── */
         #screen-stats { background: #0F1221; }
-        .stats-section { padding: 0 1.25rem 1.25rem; }
-        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; }
+        .stats-section { padding: 0 1.25rem 1.25rem; overflow-x: hidden; }
+        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; overflow: hidden; }
         .stats-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 1rem; }
         .compound-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; }
-        .compound-bar { flex: 1; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; }
+        .compound-bar { flex: 1; min-width: 0; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; }
         .compound-bar:last-child { opacity: 1; }
-        .chart-labels { display: flex; justify-content: space-between; margin-top: 0.5rem; }
+        .chart-labels { display: flex; justify-content: space-between; margin-top: 0.5rem; overflow: hidden; }
         .chart-labels span { font-size: 0.6rem; color: #5A6180; }
         .stats-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
         .stat-box { flex: 1; background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1rem; text-align: center; }
         .stat-box .val { font-size: 2rem; font-weight: 700; color: #EAEDF6; background: linear-gradient(135deg, #C084FC, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stat-box .lbl { font-size: 0.7rem; color: #8B92AB; margin-top: 0.2rem; }
+        /* Consistency Score card: 2×2 grid so "All-Time" is never cut off */
+        #screen-growth .stats-card:first-child .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0; }
+        /* Slightly smaller value text inside the 2×2 grid to fit comfortably */
+        #screen-growth .stats-card:first-child .stat-box .val { font-size: 1.5rem; }
         .identity-item { display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 0; border-bottom: 1px solid #2A3152; cursor: pointer; }
         .identity-item:last-child { border: none; }
         .identity-icon { font-size: 1.5rem; width: 2.25rem; text-align: center; flex-shrink: 0; }
@@ -259,17 +263,17 @@
         .identity-bar-fill { height: 4px; background: linear-gradient(135deg, #7c3aed, #db2777); border-radius: 999px; transition: width .6s ease; }
         .weekly-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
         .week-day { text-align: center; }
-        .week-day-label { font-size: 0.58rem; color: #5A6180; margin-bottom: 0.4rem; }
+        .week-day-label { font-size: 0.7rem; color: #A3A8C1; font-weight: 500; margin-bottom: 0.4rem; }
         .week-dot { width: 100%; aspect-ratio: 1; border-radius: 0.35rem; background: #242B45; }
         .week-dot.done { background: linear-gradient(135deg, #7c3aed, #db2777); }
         .week-dot.partial { background: #3b1f6e; }
 
         /* ── HABIT DETAIL SCREEN ── */
         #screen-habit-detail { background: #0F1221; padding: 0; }
-        .detail-header { padding: 1.25rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
+        .detail-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
         .detail-header h2 { font-size: 1rem; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .detail-delete-btn { background: none; border: none; color: #5A6180; font-size: 1.1rem; cursor: pointer; padding: 0.25rem; }
-        .detail-body { flex: 1; overflow-y: auto; padding-bottom: 2rem; }
+        .detail-delete-btn { background: none; border: none; color: #8B92AB; font-size: 1.1rem; cursor: pointer; padding: 0.5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+        .detail-body { flex: 1; overflow-y: auto; padding-bottom: 5.5rem; -webkit-overflow-scrolling: touch; }
 
         .streak-hero { text-align: center; padding: 2rem 1.25rem 1.5rem; }
         .streak-fire { font-size: 3.5rem; margin-bottom: 0.25rem; line-height: 1; }
@@ -291,9 +295,10 @@
         .detail-action-row {
           position: sticky;
           bottom: 0;
-          padding: 1rem 1.25rem 1.5rem;
+          padding: 1rem 1.25rem calc(1.5rem + 56px);
           background: linear-gradient(to top, #0F1221 80%, transparent);
-          margin: 0 -1.25rem -1.25rem;
+          margin: 0;
+          z-index: 50;
         }
         .btn-complete { width: 100%; padding: 1rem; background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.875rem; color: #fff; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .2s; }
         .btn-complete.is-done { background: #1a3024; color: #34D399; border: 2px solid #34D39944; }
@@ -303,7 +308,7 @@
         .setup-card-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 0.875rem; }
         .setup-field { margin-bottom: 0.75rem; }
         .setup-field:last-child { margin-bottom: 0; }
-        .setup-field-label { font-size: 0.7rem; color: #5A6180; margin-bottom: 0.2rem; }
+        .setup-field-label { font-size: 0.7rem; color: #8B92AB; margin-bottom: 0.2rem; }
         .setup-field-value { font-size: 0.85rem; color: #8B92AB; line-height: 1.5; }
 
         /* ── REMINDER TOGGLE ── */
@@ -324,7 +329,7 @@
         .btn-allow-notifs { background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.625rem; color: #fff; font-size: 0.8rem; font-weight: 600; font-family: inherit; padding: 0.5rem 0.875rem; cursor: pointer; white-space: nowrap; }
 
         /* ── MILESTONE OVERLAY ── */
-        .milestone-overlay { position: fixed; inset: 0; background: rgba(15,18,33,0.96); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 2rem; transition: opacity 300ms ease-out; }
+        .milestone-overlay { position: fixed; inset: 0; background: rgba(15,18,33,0.96); z-index: 999; display: flex; align-items: center; justify-content: center; padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2rem, env(safe-area-inset-bottom)) 1.5rem; transition: opacity 300ms ease-out; }
         #milestone-overlay:not(.visible) { opacity: 0; pointer-events: none; }
         #milestone-overlay.visible { opacity: 1; }
         .milestone-content { text-align: center; max-width: 320px; width: 100%; }
@@ -357,7 +362,7 @@
         }
 
         /* ── WEEKLY REVIEW OVERLAY ── */
-        .weekly-review-overlay { position: fixed; inset: 0; background: rgba(15,18,33,0.97); z-index: 999; display: none; flex-direction: column; overflow-y: auto; padding: 2rem 1.5rem 2.5rem; }
+        .weekly-review-overlay { position: fixed; inset: 0; background: rgba(15,18,33,0.97); z-index: 999; display: none; flex-direction: column; overflow-y: auto; padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2.5rem, env(safe-area-inset-bottom)) 1.5rem; }
         .weekly-review-overlay.show { display: flex; }
         .wr-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
         .wr-title { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
@@ -388,7 +393,7 @@
         /* ── PROFILE SHEET ── */
         .profile-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; }
         .profile-sheet-backdrop.show { opacity: 1; pointer-events: all; }
-        .profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1A1F35; border-top: 1px solid #2A3152; border-radius: 1.5rem 1.5rem 0 0; z-index: 201; max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0); padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1A1F35; border-top: 1px solid #2A3152; border-radius: 1.5rem 1.5rem 0 0; z-index: 201; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0); padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 56px + 1rem); }
         .profile-sheet.show { transform: translateY(0); transition-timing-function: cubic-bezier(.33,1,.68,1); }
         .profile-sheet-handle { width: 2.5rem; height: 4px; background: #2A3152; border-radius: 999px; margin: 0.875rem auto 0; }
         .profile-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem 0.5rem; }
@@ -404,7 +409,7 @@
         .profile-stat-row { display: flex; gap: 0.6rem; margin-bottom: 0.75rem; }
         .profile-stat-box { flex: 1; background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 0.875rem 0.75rem; text-align: center; }
         .profile-stat-val { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #C084FC, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
-        .profile-stat-lbl { font-size: 0.62rem; color: #5A6180; margin-top: 0.25rem; line-height: 1.3; }
+        .profile-stat-lbl { font-size: 0.7rem; color: #8B92AB; margin-top: 0.25rem; line-height: 1.3; }
         .profile-votes-line { background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; padding: 0.875rem 1rem; font-size: 0.82rem; color: #8B92AB; line-height: 1.6; margin-bottom: 0.75rem; }
         .profile-votes-line strong { color: #EAEDF6; }
         .profile-divider { height: 1px; background: #2A3152; margin: 0.5rem 0 1rem; }
@@ -548,6 +553,25 @@
     </div>
 </div>
 
+<!-- Note Input Sheet -->
+<div class="profile-sheet-backdrop" id="note-sheet-backdrop" onclick="closeNoteSheet()"></div>
+<div class="profile-sheet" id="note-sheet" style="display: none;">
+    <div class="profile-sheet-handle"></div>
+    <div class="profile-sheet-header">
+        <div class="profile-sheet-title">Add a Note</div>
+        <button class="profile-sheet-close" onclick="closeNoteSheet()">✕</button>
+    </div>
+
+    <div class="profile-sheet-section" style="padding: 0 1.25rem;">
+        <label class="profile-form-label" style="margin-bottom: 0.75rem;">Reflect on your completion:</label>
+        <textarea id="note-input" placeholder="How did it feel? What did you notice? (optional)" style="width: 100%; background: #1A1F35; border: 1px solid #2A3152; border-radius: 0.75rem; padding: 0.75rem; color: #EAEDF6; font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 80px; outline: none;" maxlength="500"></textarea>
+        <div style="font-size: 0.7rem; color: #5A6180; margin-top: 0.5rem;">Max 500 characters</div>
+
+        <button class="btn-save-profile" onclick="saveNote()" style="margin-top: 1rem;">Save Note</button>
+        <button onclick="closeNoteSheet()" style="width: 100%; padding: 0.75rem; background: transparent; border: 1px solid #2A3152; border-radius: 0.75rem; color: #EAEDF6; margin-top: 0.5rem; font-family: inherit; cursor: pointer;">Skip</button>
+    </div>
+</div>
+
 <!-- ══════════════════ SCREEN: ONBOARDING ══════════════════ -->
 <div class="screen active" id="screen-onboarding">
     <div class="ob-logo"><span>AtomicMe</span></div>
@@ -617,7 +641,7 @@
     </div>
 
     <button class="add-habit-btn" onclick="showScreen('screen-add')">
-        <span style="font-size:1.1rem">+</span> Add New Habit
+        <span style="font-size:1.1rem">+</span> Add News Habit
     </button>
 
     <div class="reminder-permission-banner" id="home-reminder-permission-banner" style="margin-top:0.75rem;">
@@ -813,10 +837,11 @@
 <div class="screen" id="screen-stats">
     <div class="app-header">
         <div class="header-greeting">
+            <button onclick="showTab('screen-home', null)" style="background:none;border:none;padding:0;color:#A855F7;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
             <h2>Your Progress</h2>
             <p>Every rep is a vote for who you're becoming.</p>
         </div>
-        <div class="avatar" id="stats-avatar">?</div>
+        <div class="avatar" id="stats-avatar" onclick="openProfileSheet()">?</div>
     </div>
 
     <div class="stats-section">
@@ -859,10 +884,11 @@
 <div class="screen" id="screen-growth">
     <div class="app-header">
         <div class="header-greeting">
+            <button onclick="showTab('screen-home', null)" style="background:none;border:none;padding:0;color:#A855F7;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
             <h2>Compound Growth</h2>
             <p>Your 1% advantage over time.</p>
         </div>
-        <div class="avatar" id="growth-avatar">?</div>
+        <div class="avatar" id="growth-avatar" onclick="openProfileSheet()">?</div>
     </div>
 
     <div class="stats-section">
@@ -930,6 +956,17 @@
             <div class="stat-box"><div class="val" id="detail-rate">0%</div><div class="lbl">30-day Rate</div></div>
         </div>
 
+        <div class="phase-card" id="detail-phase-card" style="margin: 0 1.25rem 1rem; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 1rem; padding: 1rem; display: none;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <div id="detail-phase-icon" style="font-size: 1.5rem;">🌱</div>
+                <div>
+                    <div id="detail-phase-label" style="font-weight: 600; font-size: 0.95rem; color: #EAEDF6;">Phase Label</div>
+                    <div id="detail-phase-consistency" style="font-size: 0.7rem; color: #8B92AB;"></div>
+                </div>
+            </div>
+            <div id="detail-phase-description" style="font-size: 0.8rem; color: #A5ADBE; line-height: 1.4;">Phase description</div>
+        </div>
+
         <div class="heatmap-wrap">
             <div class="stats-card" style="padding: 1rem;">
                 <h3 style="margin-bottom: 0.75rem;">Last 12 Weeks</h3>
@@ -938,6 +975,11 @@
         </div>
 
         <div class="insight-card" id="detail-insight"></div>
+
+        <div class="notes-timeline" id="detail-notes-timeline" style="padding: 0 1.25rem; margin-bottom: 1.25rem; display: none;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: #EAEDF6;">Your Journey</h3>
+            <div id="detail-notes-list"></div>
+        </div>
 
         <div class="setup-card" id="detail-setup" style="display:none;">
             <div class="setup-card-title">Your Setup</div>
@@ -1015,10 +1057,11 @@ const QUOTES = [
 let state = {
     user: null,
     habits: [],
-    completions: {},  // { 'YYYY-MM-DD': [habitId, ...] }
-    streaks: {},      // { habitId: n }
-    bestStreaks: {},   // { habitId: n }
-    categories: [],    // array of category objects from server
+    completions: {},       // { 'YYYY-MM-DD': [habitId, ...] }
+    completionNotes: {},   // { 'YYYY-MM-DD:habitId': 'note text' }
+    streaks: {},           // { habitId: n }
+    bestStreaks: {},       // { habitId: n }
+    categories: [],        // array of category objects from server
 };
 
 let currentDetailHabitId = null;
@@ -1069,12 +1112,13 @@ async function init() {
     try {
         const data = await api('GET', '/api/state');
         if (data.user) {
-            state.user        = data.user;
-            state.habits      = data.habits;
-            state.completions = data.completions;
-            state.streaks     = data.streaks;
-            state.bestStreaks  = data.bestStreaks;
-            state.categories  = data.categories || [];
+            state.user            = data.user;
+            state.habits          = data.habits;
+            state.completions     = data.completions;
+            state.completionNotes = data.completionNotes || {};
+            state.streaks         = data.streaks;
+            state.bestStreaks     = data.bestStreaks;
+            state.categories      = data.categories || [];
             saveLocal();
             showScreen('screen-home');
             renderHome();
@@ -1299,6 +1343,10 @@ async function toggleHabit(id) {
         if (result.milestone && !wasCompleted) {
             setTimeout(() => showMilestone(result.milestone), 700);
         }
+        // After successful completion, offer to add a note
+        if (!wasCompleted) {
+            setTimeout(() => openNoteSheet(id), 1200);
+        }
     } catch(e) { /* keep optimistic */ }
 }
 
@@ -1373,6 +1421,27 @@ function showHabitDetail(id) {
     renderDetailHeatmap(id);
     document.getElementById('detail-insight').innerHTML = getInsightMessage(streak, habit.name);
 
+    // Display phase information if available
+    if (habit.phase) {
+        const phaseCard = document.getElementById('detail-phase-card');
+        document.getElementById('detail-phase-icon').textContent = habit.phase.icon || '🌱';
+        document.getElementById('detail-phase-label').textContent = habit.phase.label || 'Phase Unknown';
+        document.getElementById('detail-phase-description').textContent = habit.phase.description || '';
+
+        const consistencyEl = document.getElementById('detail-phase-consistency');
+        if (habit.phase.consistencyRate !== undefined) {
+            consistencyEl.textContent = `${habit.phase.consistencyRate}% consistency`;
+        } else {
+            consistencyEl.textContent = `Day ${habit.phase.daysSinceCreation || 0}`;
+        }
+
+        phaseCard.style.display = 'block';
+    } else {
+        document.getElementById('detail-phase-card').style.display = 'none';
+    }
+
+    renderDetailNotes(id);
+
     const setupFields = [
         { label: 'Your Why',          value: habit.why },
         { label: '2-Minute Version',  value: habit.twoMin },
@@ -1429,6 +1498,44 @@ function renderDetailHeatmap(id) {
             `<div class="heatmap-cell ${day.done ? 'done' : ''} ${day.isToday ? 'today' : ''}"></div>`
         ).join('')}</div>`
     ).join('');
+}
+
+function renderDetailNotes(habitId) {
+    // Collect all notes for this habit and render them in a timeline
+    const habitNotes = [];
+
+    for (const [key, note] of Object.entries(state.completionNotes)) {
+        const [date, hid] = key.split(':');
+        if (String(hid) === String(habitId)) {
+            habitNotes.push({ date, note });
+        }
+    }
+
+    const notesEl = document.getElementById('detail-notes-timeline');
+    const notesList = document.getElementById('detail-notes-list');
+
+    if (habitNotes.length === 0) {
+        notesEl.style.display = 'none';
+        return;
+    }
+
+    // Sort by date descending (newest first)
+    habitNotes.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Show only the last 5 notes
+    const recentNotes = habitNotes.slice(0, 5);
+
+    notesList.innerHTML = recentNotes.map(item => {
+        const dateObj = new Date(item.date);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        return `<div style="background: rgba(168, 85, 247, 0.08); border-left: 3px solid #A855F7; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+            <div style="font-size: 0.7rem; color: #8B92AB; margin-bottom: 0.25rem;">${dayName}</div>
+            <div style="font-size: 0.85rem; color: #EAEDF6; line-height: 1.4;">"${item.note}"</div>
+        </div>`;
+    }).join('');
+
+    notesEl.style.display = 'block';
 }
 
 function getInsightMessage(streak, habitName) {
@@ -1984,12 +2091,23 @@ function saveReminders(reminders) {
     try { localStorage.setItem('atomicme_reminders', JSON.stringify(reminders)); } catch(e) {}
 }
 
+function isNativeContext() {
+    // NativePHP Mobile loads the app from 127.0.0.1 (embedded PHP server, no port).
+    // The browser dev server runs on localhost:8000. Most reliable sync detection.
+    return window.location.hostname === '127.0.0.1';
+}
+
 function notificationPermission() {
+    // In a NativePHP WebView the browser Notification API is unavailable, but local
+    // notifications work through the native bridge. Treat native context as granted.
+    if (isNativeContext()) { return 'granted'; }
     if (typeof Notification === 'undefined') { return 'unsupported'; }
     return Notification.permission;
 }
 
 async function requestNotificationPermission() {
+    // In native context no browser permission dialog is needed — the bridge handles it.
+    if (isNativeContext()) { return true; }
     if (typeof Notification === 'undefined') { return false; }
     try {
         const result = await Notification.requestPermission();
@@ -2425,6 +2543,61 @@ document.getElementById('delete-sheet-confirm').addEventListener('click', () => 
     if (pendingDeleteId) { deleteHabit(pendingDeleteId); }
     closeDeleteSheet();
 });
+
+// ══════════════════════════════════════════
+//  NOTE SHEET
+// ══════════════════════════════════════════
+let pendingNoteData = null;
+
+function openNoteSheet(habitId) {
+    pendingNoteData = { habitId };
+    document.getElementById('note-input').value = '';
+    document.getElementById('note-sheet-backdrop').style.display = 'block';
+    document.getElementById('note-sheet').style.display = 'flex';
+}
+
+function closeNoteSheet() {
+    pendingNoteData = null;
+    document.getElementById('note-sheet-backdrop').style.display = 'none';
+    document.getElementById('note-sheet').style.display = 'none';
+}
+
+async function saveNote() {
+    if (!pendingNoteData) { return; }
+
+    const note = document.getElementById('note-input').value.trim();
+    const { habitId } = pendingNoteData;
+
+    if (!note) {
+        closeNoteSheet();
+        return;
+    }
+
+    const todayStr = today();
+    const key = `${todayStr}:${habitId}`;
+
+    // Optimistic update
+    state.completionNotes[key] = note;
+    saveLocal();
+
+    // If we're on the detail screen, refresh the notes timeline
+    if (currentDetailHabitId === habitId) {
+        renderDetailNotes(habitId);
+    }
+
+    closeNoteSheet();
+    showToast('Note saved!', 'purple');
+
+    // Sync note to backend
+    try {
+        await api('POST', '/api/completions/note', {
+            habit_id: habitId,
+            note: note,
+        });
+    } catch(e) {
+        // Keep optimistic state if sync fails
+    }
+}
 
 async function confirmResetData() {
     const confirmed = confirm('Are you sure? This will delete all your habits and progress. This cannot be undone.');
