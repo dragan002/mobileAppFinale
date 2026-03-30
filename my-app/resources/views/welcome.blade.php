@@ -243,7 +243,7 @@
         /* ── STATS SCREEN ── */
         #screen-stats { background: #0F1221; }
         .stats-section { padding: 0 1.25rem 1.25rem; overflow-x: hidden; }
-        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; overflow: hidden; }
+        .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; }
         .stats-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 1rem; }
         .compound-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; }
         .compound-bar { flex: 1; min-width: 0; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; }
