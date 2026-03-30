@@ -1208,7 +1208,6 @@ let state = {
 
 let currentDetailHabitId = null;
 let editingHabitId = null;
-let currentStep = 0;
 let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
 let selectedIdentity = null;
 let activeCategoryFilter = null; // null = show all categories
@@ -1723,50 +1722,15 @@ function showEditHabit(id) {
 
     editingHabitId = id;
 
-    // Populate the form fields from the habit in state
-    resetAddForm();
-
-    document.getElementById('new-name').value      = habit.name  || '';
-    document.getElementById('new-why').value       = habit.why   || '';
-    document.getElementById('new-bundle').value    = habit.bundle || '';
-    document.getElementById('new-two-min').value   = habit.twoMin || '';
-    document.getElementById('new-stack').value     = habit.stack || '';
-    document.getElementById('new-duration').value  = habit.duration || '';
-    document.getElementById('new-reward').value    = habit.reward || '';
-
-    // Select the correct emoji
-    const emojiBtn = document.querySelector(`.emoji-btn[data-emoji="${habit.emoji}"]`);
-    if (emojiBtn) {
-        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-        emojiBtn.classList.add('selected');
-    }
-    newHabit.emoji = habit.emoji;
-
-    // Select the correct color
-    const colorBtn = document.querySelector(`.color-btn[data-color="${habit.color}"]`);
-    if (colorBtn) {
-        document.querySelectorAll('#color-grid .color-btn').forEach(b => b.classList.remove('selected'));
-        colorBtn.classList.add('selected');
-    }
-    newHabit.color = habit.color;
-
-    // Select the correct time
-    const timeBtn = document.querySelector(`#time-grid .time-btn[data-time="${habit.time}"]`);
-    if (timeBtn) {
-        document.querySelectorAll('#time-grid .time-btn').forEach(b => b.classList.remove('selected'));
-        timeBtn.classList.add('selected');
-    }
-    newHabit.time = habit.time || 'morning';
-
-    // Select the correct difficulty
-    const diffBtn = document.querySelector(`#diff-grid .time-btn[data-diff="${habit.diff}"]`);
-    if (diffBtn) {
-        document.querySelectorAll('#diff-grid .time-btn').forEach(b => b.classList.remove('selected'));
-        diffBtn.classList.add('selected');
-    }
-    newHabit.diff = habit.diff || 'medium';
-    newHabit.categoryId = habit.categoryId || null;
-    newHabit.reminderTime = habit.reminderTime || '';
+    // Populate form fields and picker selections via module.
+    // Sync draft state from habit so picker click handlers stay consistent.
+    if (window.App) { App.screens.add.populateForm(habit); }
+    newHabit.emoji             = habit.emoji             || '🏃';
+    newHabit.color             = habit.color             || '#1e3a2f';
+    newHabit.time              = habit.time              || 'morning';
+    newHabit.diff              = habit.diff              || 'medium';
+    newHabit.categoryId        = habit.categoryId        ?? null;
+    newHabit.reminderTime      = habit.reminderTime      || '';
     newHabit.targetDaysPerWeek = habit.targetDaysPerWeek || 7;
 
     // Update screen chrome for edit mode
@@ -1785,79 +1749,35 @@ function showEditHabit(id) {
 
 /**
  * Reset the Add Habit form to its default blank state.
- * Called when entering the add screen fresh (not in edit mode) and after
- * a habit is successfully saved.
+ * Resets the draft state object, delegates DOM reset to module, then
+ * restores screen chrome for create mode.
  *
  * @@returns {void}
  */
 function resetAddForm() {
-    newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
-    goStep(0);
-    ['new-name','new-why','new-bundle','new-two-min','new-stack','new-duration','new-reward'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.value = ''; }
-    });
-    document.querySelectorAll('.emoji-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
-    document.querySelectorAll('#time-grid .time-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
-    document.querySelectorAll('#color-grid .color-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
-    document.querySelectorAll('#diff-grid .time-btn').forEach((b, i) => b.classList.toggle('selected', i === 1));
-    document.getElementById('save-habit-btn').disabled = false;
+    newHabit = window.App
+        ? { ...App.screens.add.defaultNewHabit() }
+        : { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
+
+    if (window.App) { App.screens.add.resetForm(newHabit.targetDaysPerWeek); }
+
+    document.getElementById('save-habit-btn').disabled      = false;
     document.getElementById('save-habit-btn').textContent   = '✓ Create Habit';
     document.getElementById('add-screen-title').textContent = 'New Habit';
     document.getElementById('add-back-btn').onclick = () => showScreen('screen-home');
     renderCategoryPicker();
 }
 
-// Step order: 0 → freq → 1 → 2 → 3
-const STEP_ORDER = [0, 'freq', 1, 2, 3];
-
 /**
  * Navigate the Add Habit wizard to the specified step.
- * Hides the current step, shows the target step, and updates the step indicator bar.
+ * Delegates step display and indicator updates to module; passes current
+ * draft frequency so the freq grid renders correctly.
  *
  * @@param {number|'freq'} n  Target step identifier: 0, 'freq', 1, 2, or 3.
  * @@returns {void}
  */
 function goStep(n) {
-    document.getElementById('add-step-' + currentStep).style.display = 'none';
-    currentStep = n;
-    document.getElementById('add-step-' + n).style.display = 'block';
-
-    // Map step name to visual indicator index
-    const stepIndicators = [0, 'freq', 1, 2, 3];
-    const activeIdx = stepIndicators.indexOf(n);
-    stepIndicators.forEach((sid, idx) => {
-        const el = document.getElementById('step-' + sid);
-        if (el) {
-            el.classList.toggle('done', idx < activeIdx);
-            el.classList.toggle('active', idx === activeIdx);
-        }
-    });
-
-    // Render frequency grid when entering freq step
-    if (n === 'freq') { renderFrequencyGrid(); }
-
-    document.querySelector('.add-body').scrollTo(0, 0);
-}
-
-/**
- * Render the frequency selector grid (1–7 days/week) on the freq step.
- * Highlights the currently selected frequency from `newHabit.targetDaysPerWeek`.
- *
- * @@returns {void}
- */
-function renderFrequencyGrid() {
-    const grid = document.getElementById('frequency-grid');
-    if (!grid) { return; }
-    const target = newHabit.targetDaysPerWeek || 7;
-    grid.innerHTML = [1,2,3,4,5,6,7].map(d => {
-        const labels = ['1x','2x','3x','4x','5x','6x','Daily'];
-        const subs   = ['Sun only','Twice','3 days','4 days','5 days','6 days','Every day'];
-        return `<div class="frequency-btn ${d === target ? 'selected' : ''}" onclick="selectFrequency(${d})">
-            <div>${labels[d-1]}</div>
-            <div style="font-size:0.6rem;color:#8B92AB;margin-top:0.2rem;">${subs[d-1]}</div>
-        </div>`;
-    }).join('');
+    if (window.App) { App.screens.add.goStep(n, newHabit.targetDaysPerWeek); }
 }
 
 /**
@@ -1923,7 +1843,8 @@ function selectDiff(el) {
 
 /**
  * Render the category picker pill list from `state.categories`.
- * Includes a "None" option that deselects any category.
+ * Delegates HTML generation to module; keeps inline onclick handlers so
+ * `selectCategory()` can update the `newHabit` draft.
  *
  * @@returns {void}
  */
@@ -1969,22 +1890,13 @@ async function saveHabit() {
 
     document.getElementById('save-habit-btn').disabled = true;
 
-    const habitData = {
-        name,
-        emoji:    newHabit.emoji,
-        time:     newHabit.time,
-        why:      document.getElementById('new-why').value.trim(),
-        bundle:   document.getElementById('new-bundle').value.trim(),
-        color:    newHabit.color,
-        twoMin:   document.getElementById('new-two-min').value.trim(),
-        stack:    document.getElementById('new-stack').value.trim(),
-        duration: document.getElementById('new-duration').value.trim(),
-        reward:   document.getElementById('new-reward').value.trim(),
-        diff:     newHabit.diff,
-        categoryId: newHabit.categoryId,
-        targetDaysPerWeek: newHabit.targetDaysPerWeek || 7,
-        reminderTime: newHabit.reminderTime,
-    };
+    // Read all form field values + draft picker state via module helper.
+    const habitData = window.App
+        ? App.screens.add.readHabitDraft(newHabit)
+        : { name, emoji: newHabit.emoji, time: newHabit.time, color: newHabit.color,
+            diff: newHabit.diff, categoryId: newHabit.categoryId,
+            targetDaysPerWeek: newHabit.targetDaysPerWeek || 7, reminderTime: newHabit.reminderTime,
+            why: '', bundle: '', twoMin: '', stack: '', duration: '', reward: '' };
 
     if (editingHabitId) {
         // Edit mode — optimistic update in place, no ID change, no touching streaks/completions
