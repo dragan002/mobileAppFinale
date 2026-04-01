@@ -50,7 +50,7 @@ Your data is retained indefinitely unless you choose to delete it. You can delet
 ### How to Delete Your Data
 
 1. **In-App:** Open AtomicMe → tap your avatar → select "Reset Data" → confirm
-2. **Via Email:** If you need additional assistance, contact us at `support@atomicme.dev` and we'll guide you through the process
+2. **Via Email:** If you need additional assistance, contact us at `draganvujic29@gmail.com` and we'll guide you through the process
 
 When you reset your data:
 - All habits are deleted
@@ -63,7 +63,7 @@ When you reset your data:
 
 Currently, AtomicMe does not provide an automated data export feature. To export your data, you can:
 - Take screenshots of your stats and habits
-- Contact `support@atomicme.dev` for assistance with manual extraction
+- Contact `draganvujic29@gmail.com` for assistance with manual extraction
 
 ## Third-Party Services
 
@@ -94,7 +94,7 @@ We may update this privacy policy to reflect changes in our practices. When we m
 
 If you have questions about this privacy policy or our privacy practices, please contact:
 
-**Email:** support@atomicme.dev
+**Email:** draganvujic29@gmail.com
 
 ---
 
@@ -108,4 +108,4 @@ If you have questions about this privacy policy or our privacy practices, please
 
 **User Control:** Users can delete all data at any time via the "Reset Data" button in settings.
 
-**Data Deletion Support:** Contact support@atomicme.dev for assistance with data deletion requests.
+**Data Deletion Support:** Contact draganvujic29@gmail.com for assistance with data deletion requests.
