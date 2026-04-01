@@ -81,7 +81,12 @@ class StateController extends Controller
                 'identityIcon' => $user->identity_icon,
                 'createdAt' => $user->created_at?->toDateString(),
             ],
-            'habits' => $habits->map->toApiArray()->values(),
+            'habits' => $habits->map(function ($habit) use ($streakData, $bestStreakData) {
+                return $habit->toApiArray(
+                    $streakData[$habit->id] ?? null,
+                    $bestStreakData[$habit->id] ?? null
+                );
+            })->values(),
             'completions' => $completionsMap,
             'completionNotes' => $completionNotes,
             'streaks' => $streaks,

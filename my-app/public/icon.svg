@@ -1,61 +1,107 @@
-<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <!-- Gradient definitions -->
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="atomGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#A855F7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F1221"/>
+      <stop offset="100%" stop-color="#1a0a2e"/>
     </linearGradient>
-    <radialGradient id="coreGradient" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" style="stop-color:#EC4899;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#DB2777;stop-opacity:1" />
-    </radialGradient>
+
+    <!-- Purple gradient -->
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <!-- Pink accent gradient -->
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#DB2777"/>
+    </linearGradient>
+
+    <!-- Glow filter for nucleus -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft outer glow -->
+    <filter id="outerGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20"/>
+    </filter>
+
+    <!-- Checkmark glow -->
+    <filter id="checkGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="256" fill="#0F172A"/>
+  <!-- Background with rounded corners for adaptive icon -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGrad)"/>
 
-  <!-- Outer ring (habit progress circle) -->
-  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#atomGradient)" stroke-width="8" opacity="0.3"/>
-  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#atomGradient)" stroke-width="8"
-          stroke-dasharray="942" stroke-dashoffset="235" stroke-linecap="round"/>
+  <!-- Subtle radial light behind center -->
+  <circle cx="512" cy="480" r="280" fill="#7C3AED" opacity="0.06"/>
 
-  <!-- Atomic nucleus (center core) -->
-  <circle cx="256" cy="256" r="35" fill="url(#coreGradient)"/>
+  <!-- Outer progress ring (background track) -->
+  <circle cx="512" cy="480" r="260" fill="none" stroke="#A855F7" stroke-width="10" opacity="0.15"/>
 
-  <!-- Electron orbits -->
-  <!-- Orbit 1 - horizontal -->
-  <ellipse cx="256" cy="256" rx="90" ry="50" fill="none" stroke="url(#atomGradient)" stroke-width="3" opacity="0.6"/>
+  <!-- Outer progress ring (filled ~75%) -->
+  <circle cx="512" cy="480" r="260" fill="none" stroke="url(#purpleGrad)" stroke-width="10"
+          stroke-dasharray="1634" stroke-dashoffset="408" stroke-linecap="round"
+          transform="rotate(-90 512 480)"/>
 
-  <!-- Orbit 2 - rotated 60 degrees -->
-  <g transform="rotate(60 256 256)">
-    <ellipse cx="256" cy="256" rx="90" ry="50" fill="none" stroke="url(#atomGradient)" stroke-width="3" opacity="0.6"/>
+  <!-- Orbit 1 — horizontal ellipse -->
+  <ellipse cx="512" cy="480" rx="170" ry="85" fill="none" stroke="#A855F7" stroke-width="4" opacity="0.35"/>
+
+  <!-- Orbit 2 — rotated 60° -->
+  <g transform="rotate(60 512 480)">
+    <ellipse cx="512" cy="480" rx="170" ry="85" fill="none" stroke="#A855F7" stroke-width="4" opacity="0.35"/>
   </g>
 
-  <!-- Orbit 3 - rotated 120 degrees -->
-  <g transform="rotate(120 256 256)">
-    <ellipse cx="256" cy="256" rx="90" ry="50" fill="none" stroke="url(#atomGradient)" stroke-width="3" opacity="0.6"/>
+  <!-- Orbit 3 — rotated 120° -->
+  <g transform="rotate(120 512 480)">
+    <ellipse cx="512" cy="480" rx="170" ry="85" fill="none" stroke="#A855F7" stroke-width="4" opacity="0.35"/>
   </g>
 
-  <!-- Electrons on orbits -->
-  <!-- Electron 1 -->
-  <circle cx="346" cy="256" r="8" fill="url(#atomGradient)"/>
+  <!-- Electrons -->
+  <!-- Electron 1 — right of horizontal orbit -->
+  <circle cx="682" cy="480" r="14" fill="url(#purpleGrad)" filter="url(#glow)"/>
 
-  <!-- Electron 2 -->
-  <g transform="rotate(120 256 256)">
-    <circle cx="346" cy="256" r="8" fill="url(#atomGradient)"/>
+  <!-- Electron 2 — on orbit 2 -->
+  <g transform="rotate(60 512 480)">
+    <circle cx="342" cy="480" r="14" fill="url(#purpleGrad)" filter="url(#glow)"/>
   </g>
 
-  <!-- Electron 3 -->
-  <g transform="rotate(240 256 256)">
-    <circle cx="346" cy="256" r="8" fill="url(#atomGradient)"/>
+  <!-- Electron 3 — on orbit 3 -->
+  <g transform="rotate(120 512 480)">
+    <circle cx="682" cy="480" r="14" fill="url(#purpleGrad)" filter="url(#glow)"/>
   </g>
 
-  <!-- Center dot glow -->
-  <circle cx="256" cy="256" r="20" fill="#EC4899" opacity="0.2" filter="blur(8px)"/>
+  <!-- Nucleus glow -->
+  <circle cx="512" cy="480" r="65" fill="#EC4899" opacity="0.15" filter="url(#outerGlow)"/>
 
-  <!-- Checkmark accent (small, top right of nucleus) -->
-  <g transform="translate(300, 220)">
-    <circle cx="0" cy="0" r="18" fill="#10B981" opacity="0.9"/>
-    <path d="M -6 0 L -2 4 L 6 -4" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <!-- Nucleus -->
+  <circle cx="512" cy="480" r="52" fill="url(#pinkGrad)" filter="url(#glow)"/>
+
+  <!-- Checkmark inside nucleus -->
+  <path d="M 488 482 L 504 500 L 540 460" stroke="white" stroke-width="10" fill="none"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#checkGlow)"/>
+
+  <!-- "AtomicMe" text -->
+  <text x="512" y="760" text-anchor="middle" font-family="'SF Pro Display', 'Segoe UI', Arial, sans-serif"
+        font-size="72" font-weight="800" letter-spacing="-2" fill="white">
+    <tspan fill="url(#purpleGrad)">Atomic</tspan><tspan fill="#EC4899">Me</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="512" y="810" text-anchor="middle" font-family="'SF Pro Display', 'Segoe UI', Arial, sans-serif"
+        font-size="32" font-weight="500" fill="#8B92AB" letter-spacing="1">
+    tiny habits. big change.
+  </text>
 </svg>

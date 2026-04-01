@@ -255,9 +255,9 @@ class Habit extends Model
         return $best;
     }
 
-    public function calculatePhase(): array
+    public function calculatePhase(?int $streak = null): array
     {
-        $streak = $this->calculateStreak();
+        $streak = $streak ?? $this->calculateStreak();
         $daysSinceCreation = $this->created_at->diffInDays(Carbon::today());
 
         // Expected completions in 90 days, adjusted for frequency
@@ -304,11 +304,11 @@ class Habit extends Model
         }
     }
 
-    public function toApiArray(): array
+    public function toApiArray(?array $precomputedStreakData = null, ?array $precomputedBestStreakData = null): array
     {
-        $phase = $this->calculatePhase();
-        $streakData = $this->calculateStreakData();
-        $bestStreakData = $this->calculateBestStreakData();
+        $streakData = $precomputedStreakData ?? $this->calculateStreakData();
+        $bestStreakData = $precomputedBestStreakData ?? $this->calculateBestStreakData();
+        $phase = $this->calculatePhase($streakData['value'] ?? 0);
 
         return [
             'id' => $this->id,

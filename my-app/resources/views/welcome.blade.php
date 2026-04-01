@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AtomicMe</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/design-tokens.css') }}">
     @vite('resources/js/app.js')
     <style>
@@ -21,7 +21,7 @@
         .screen.slide-left { transform: translateX(-30px); }
 
         /* ── ONBOARDING ── */
-        #screen-onboarding { background: linear-gradient(160deg, #0F1221 0%, #1a0a2e 100%); padding: 3rem 1.5rem 2rem; justify-content: center; }
+        #screen-onboarding { background: linear-gradient(160deg, #0F1221 0%, #1a0a2e 100%); padding: 2rem 1.5rem 6rem; justify-content: flex-start; padding-top: max(2rem, 8vh); }
         .ob-logo { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.25rem; }
         .ob-logo span { background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .ob-tagline { font-size: 0.85rem; color: #8B92AB; margin-bottom: 3rem; }
@@ -77,18 +77,26 @@
         .progress-bar-wrap { background: rgba(255,255,255,0.2); border-radius: 999px; height: 8px; margin-top: 1rem; }
         .progress-bar-fill { background: #C084FC; border-radius: 999px; height: 8px; transition: width .5s ease; box-shadow: 0 0 8px rgba(192, 132, 252, 0.4), 0 0 16px rgba(168, 85, 247, 0.2); }
 
-        @keyframes shimmer {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-
         .progress-card.all-done {
           background: linear-gradient(
             135deg,
             #1a0a2e 0%, #2d1b4e 25%, #1a0a2e 50%, #2d1b4e 75%, #1a0a2e 100%
           );
-          background-size: 200% auto;
-          animation: shimmer 3s linear infinite;
+          position: relative;
+          overflow: hidden;
+        }
+        .progress-card.all-done::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+          animation: shimmer-glow 3s ease-in-out infinite;
+          pointer-events: none;
+          will-change: opacity;
+        }
+        @keyframes shimmer-glow {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
         }
         .progress-sub { font-size: 0.72rem; opacity: 0.7; margin-top: 0.5rem; }
         .identity-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.15); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.7rem; font-weight: 600; margin-top: 0.75rem; }
@@ -173,6 +181,7 @@
 
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.4rem 0 max(0.75rem, env(safe-area-inset-bottom)); z-index: 1000; flex-shrink: 0; width: 100%; }
+        .bottom-nav.hidden { display: none; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.7rem; color: #8B92AB; cursor: pointer; padding: 0.5rem 0; min-height: 44px; min-width: 44px; transition: color .2s; flex: 1; }
         .nav-item.active { color: #C084FC; }
         .nav-icon { font-size: 1.25rem; }
@@ -300,7 +309,7 @@
         .detail-action-row {
           position: sticky;
           bottom: 0;
-          padding: 1rem 1.25rem calc(1.5rem + 56px);
+          padding: 1rem 1.25rem calc(1.5rem + 56px + env(safe-area-inset-bottom, 0px));
           background: linear-gradient(to top, #0F1221 80%, transparent);
           margin: 0;
           z-index: 50;
@@ -387,7 +396,7 @@
         .wr-save-btn:active { opacity: 0.85; }
 
         /* Toast */
-        .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-80px); background: #34D399; color: #fff; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; z-index: 998; transition: transform .3s; white-space: nowrap; max-width: calc(100% - 2rem); text-align: center; }
+        .toast { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%) translateY(-80px); background: #34D399; color: #fff; padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; z-index: 1002; transition: transform .3s; white-space: nowrap; max-width: calc(100% - 2rem); text-align: center; }
         .toast.show { transform: translateX(-50%) translateY(0); }
         .toast.purple { background: linear-gradient(135deg, #7c3aed, #db2777); }
 
@@ -406,14 +415,14 @@
         * { -webkit-tap-highlight-color: transparent; }
 
         /* ── PROFILE SHEET ── */
-        .profile-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s; }
+        .profile-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .3s; }
         .profile-sheet-backdrop.show { opacity: 1; pointer-events: all; }
-        .profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1A1F35; border-top: 1px solid #2A3152; border-radius: 1.5rem 1.5rem 0 0; z-index: 201; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0); padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 56px + 1rem); }
+        .profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1A1F35; border-top: 1px solid #2A3152; border-radius: 1.5rem 1.5rem 0 0; z-index: 1001; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateY(100%); transition: transform .35s cubic-bezier(.32,0,.67,0); padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 1rem); }
         .profile-sheet.show { transform: translateY(0); transition-timing-function: cubic-bezier(.33,1,.68,1); }
         .profile-sheet-handle { width: 2.5rem; height: 4px; background: #2A3152; border-radius: 999px; margin: 0.875rem auto 0; }
         .profile-sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem 0.5rem; }
         .profile-sheet-title { font-size: 1.1rem; font-weight: 700; }
-        .profile-sheet-close { background: #242B45; border: none; color: #8B92AB; font-size: 1rem; width: 2rem; height: 2rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .profile-sheet-close { background: #242B45; border: none; color: #8B92AB; font-size: 1rem; width: 2.75rem; height: 2.75rem; min-width: 44px; min-height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .profile-sheet-section { padding: 1rem 1.25rem 0; }
         .profile-sheet-section-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8B92AB; margin-bottom: 0.75rem; }
         .profile-identity-hero { display: flex; align-items: center; gap: 1rem; background: #242B45; border: 1px solid #2A3152; border-radius: 1rem; padding: 1rem; margin-bottom: 0.75rem; }
@@ -592,7 +601,7 @@
 
 <!-- Note Input Sheet -->
 <div class="profile-sheet-backdrop" id="note-sheet-backdrop" onclick="closeNoteSheet()"></div>
-<div class="profile-sheet" id="note-sheet" style="display: none;">
+<div class="profile-sheet" id="note-sheet">
     <div class="profile-sheet-handle"></div>
     <div class="profile-sheet-header">
         <div class="profile-sheet-title">Add a Note</div>
@@ -678,7 +687,7 @@
     </div>
 
     <button class="add-habit-btn" onclick="showScreen('screen-add')">
-        <span style="font-size:1.1rem">+</span> Add News Habit
+        <span style="font-size:1.1rem">+</span> Add New Habit
     </button>
 
     <div class="reminder-permission-banner" id="home-reminder-permission-banner" style="margin-top:0.75rem;">
@@ -1006,7 +1015,7 @@
 <!-- ══════════════════ SCREEN: HABIT DETAIL ══════════════════ -->
 <div class="screen" id="screen-habit-detail">
     <div class="detail-header">
-        <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+        <button class="back-btn" onclick="goBackFromDetail()">←</button>
         <h2 id="detail-title">Habit</h2>
         <button class="detail-edit-btn" onclick="showEditHabit(currentDetailHabitId)" title="Edit habit" style="background:none;border:none;color:#C084FC;font-size:0.85rem;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;">Edit</button>
         <button class="detail-delete-btn" onclick="deleteHabitFromDetail()" title="Delete habit">🗑</button>
@@ -1088,10 +1097,10 @@
      SHARED BOTTOM NAVIGATION (outside all screens, always visible)
      ═══════════════════════════════════════════════════════════ -->
 <nav class="bottom-nav">
-    <div class="nav-item active" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
-    <div class="nav-item" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
-    <div class="nav-item" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
-    <div class="nav-item" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
+    <div class="nav-item active" data-tab="screen-home" onclick="showTab('screen-home', this)"><span class="nav-icon">🏠</span><span>Today</span></div>
+    <div class="nav-item" data-tab="screen-stats" onclick="showTab('screen-stats', this)"><span class="nav-icon">📊</span><span>Stats</span></div>
+    <div class="nav-item" data-tab="screen-growth" onclick="showTab('screen-growth', this)"><span class="nav-icon">📈</span><span>Growth</span></div>
+    <div class="nav-item" data-tab="screen-achievements" onclick="showTab('screen-achievements', this)"><span class="nav-icon">🏅</span><span>Badges</span></div>
 </nav>
 
 <script>
@@ -1351,10 +1360,23 @@ function renderCategoryBadge(categoryId) {
  * @@param {string} id  The screen element's `id`, e.g. `'screen-home'`.
  * @@returns {void}
  */
+let previousScreen = 'screen-home';
 function showScreen(id) {
+    const currentActive = document.querySelector('.screen.active');
+    if (currentActive && currentActive.id !== id) { previousScreen = currentActive.id; }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-left'));
-    document.getElementById(id).classList.add('active');
-    window.scrollTo(0, 0);
+    const screenEl = document.getElementById(id);
+    screenEl.classList.add('active');
+    screenEl.scrollTo(0, 0);
+    // Hide bottom nav during onboarding
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (bottomNav) {
+        if (id === 'screen-onboarding') {
+            bottomNav.classList.add('hidden');
+        } else {
+            bottomNav.classList.remove('hidden');
+        }
+    }
     if (id === 'screen-home')  { editingHabitId = null; renderHome(); }
     if (id === 'screen-stats') { renderStats(); }
     if (id === 'screen-growth') { renderGrowth(); }
@@ -1372,10 +1394,14 @@ function showScreen(id) {
  * @@returns {void}
  */
 function showTab(id, navEl) {
+    if (!state.user && id !== 'screen-onboarding') { return; }
     showScreen(id);
-    // Update the global bottom nav (now at root level, not inside screens)
+    updateNavActive(id);
+}
+
+function updateNavActive(id) {
     document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-    const activeNav = document.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`);
+    const activeNav = document.querySelector(`.bottom-nav .nav-item[data-tab="${id}"]`);
     if (activeNav) { activeNav.classList.add('active'); }
 }
 
@@ -1569,6 +1595,13 @@ function getStreakEmoji(streak) {
  * @@param {string|number} id  Habit ID.
  * @@returns {void}
  */
+function goBackFromDetail() {
+    const target = previousScreen || 'screen-home';
+    // Only go back to main tab screens, not other overlays
+    const validTargets = ['screen-home', 'screen-stats', 'screen-growth', 'screen-achievements'];
+    showScreen(validTargets.includes(target) ? target : 'screen-home');
+}
+
 function showHabitDetail(id) {
     if (!id) { return; }
     currentDetailHabitId = id;
@@ -1716,8 +1749,9 @@ function showEditHabit(id) {
     document.getElementById('add-back-btn').onclick = () => showHabitDetail(id);
 
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'slide-left'));
-    document.getElementById('screen-add').classList.add('active');
-    window.scrollTo(0, 0);
+    const addScreen = document.getElementById('screen-add');
+    addScreen.classList.add('active');
+    addScreen.scrollTo(0, 0);
 }
 
 // ══════════════════════════════════════════
@@ -2586,6 +2620,7 @@ async function saveWeeklyReview() {
  * @@returns {void}
  */
 function openProfileSheet() {
+    if (!state.user) { return; }
     if (window.App) { App.overlays.profileSheet.openProfileSheet(state); }
 }
 
@@ -2671,7 +2706,7 @@ function closeDeleteSheet() {
     document.getElementById('delete-sheet').style.display = 'none';
 }
 
-document.getElementById('delete-sheet-confirm').addEventListener('click', () => {
+document.getElementById('delete-sheet-confirm')?.addEventListener('click', () => {
     if (pendingDeleteId) { deleteHabit(pendingDeleteId); }
     closeDeleteSheet();
 });
@@ -2751,8 +2786,40 @@ async function saveNote() {
  * @@returns {Promise<void>}
  */
 async function confirmResetData() {
-    const confirmed = confirm('Are you sure? This will delete all your habits and progress. This cannot be undone.');
-    if (!confirmed) { return; }
+    return new Promise(resolve => {
+        const sheet = document.getElementById('delete-sheet');
+        const title = document.getElementById('delete-sheet-title');
+        const desc = sheet.querySelector('p:nth-child(2)');
+        const confirmBtn = document.getElementById('delete-sheet-confirm');
+
+        title.textContent = 'Reset all data?';
+        desc.textContent = 'This will delete all your habits and progress. This cannot be undone.';
+        confirmBtn.textContent = 'Reset Everything';
+        sheet.style.display = 'flex';
+
+        const handler = async () => {
+            confirmBtn.removeEventListener('click', handler);
+            sheet.style.display = 'none';
+            title.textContent = 'Delete habit?';
+            desc.textContent = 'This will remove all completion history for this habit.';
+            confirmBtn.textContent = 'Delete';
+            resolve(true);
+        };
+        const cancelHandler = () => {
+            sheet.style.display = 'none';
+            title.textContent = 'Delete habit?';
+            desc.textContent = 'This will remove all completion history for this habit.';
+            confirmBtn.textContent = 'Delete';
+            confirmBtn.removeEventListener('click', handler);
+            resolve(false);
+        };
+        // Override cancel button temporarily
+        const cancelBtn = sheet.querySelector('button:last-child');
+        const origOnclick = cancelBtn.onclick;
+        cancelBtn.onclick = () => { cancelHandler(); cancelBtn.onclick = origOnclick; };
+        confirmBtn.addEventListener('click', handler, { once: true });
+    }).then(async confirmed => {
+        if (!confirmed) { return; }
 
     try {
         await api('DELETE', '/api/reset');
@@ -2762,10 +2829,27 @@ async function confirmResetData() {
     localStorage.removeItem('atomicme_v3');
     localStorage.removeItem('atomicme_reminders');
     localStorage.removeItem('atomicme_last_reviewed_week');
-    state = { user: null, habits: [], completions: {}, streaks: {}, bestStreaks: {}, achievements: [] };
+    state = { user: null, habits: [], completions: {}, completionNotes: {}, streaks: {}, bestStreaks: {}, streakData: {}, bestStreakData: {}, categories: [], achievements: [] };
 
     closeProfileSheet();
     showScreen('screen-onboarding');
+
+    // Clear rendered home screen content so stale habits aren't visible if user navigates back
+    const habitsList = document.getElementById('habits-list');
+    if (habitsList) { habitsList.innerHTML = ''; }
+    const progressNumbers = document.querySelector('.progress-numbers');
+    if (progressNumbers) { progressNumbers.innerHTML = '0<span>/0</span>'; }
+    const progressFill = document.querySelector('.progress-bar-fill');
+    if (progressFill) { progressFill.style.width = '0%'; }
+
+    // Reset onboarding UI state so the user can re-enter their details cleanly
+    selectedIdentity = null;
+    const nameInput = document.getElementById('user-name');
+    if (nameInput) { nameInput.value = ''; }
+    const obBtn = document.getElementById('ob-btn');
+    if (obBtn) { obBtn.disabled = true; }
+    document.querySelectorAll('.identity-card').forEach(c => c.classList.remove('selected'));
+    });
 }
 
 // ══════════════════════════════════════════
@@ -2777,6 +2861,13 @@ async function confirmResetData() {
 // ══════════════════════════════════════════
 
 document.addEventListener('click', function(e) {
+    // Frequency button delegation (rendered dynamically by add.js)
+    const freqBtn = e.target.closest('.frequency-btn[data-freq]');
+    if (freqBtn) {
+        selectFrequency(parseInt(freqBtn.dataset.freq, 10));
+        return;
+    }
+
     const actionEl = e.target.closest('[data-action]');
     if (!actionEl) { return; }
     const action  = actionEl.dataset.action;

@@ -1,0 +1,92 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F1221"/>
+      <stop offset="100%" stop-color="#1a0a2e"/>
+    </linearGradient>
+
+    <!-- Purple gradient -->
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <!-- Pink accent gradient -->
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#DB2777"/>
+    </linearGradient>
+
+    <!-- Glow filter for nucleus -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft outer glow -->
+    <filter id="outerGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="25"/>
+    </filter>
+
+    <!-- Checkmark glow -->
+    <filter id="checkGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGrad)"/>
+
+  <!-- Subtle radial light behind center -->
+  <circle cx="512" cy="512" r="340" fill="#7C3AED" opacity="0.06"/>
+
+  <!-- Outer progress ring (background track) -->
+  <circle cx="512" cy="512" r="320" fill="none" stroke="#A855F7" stroke-width="14" opacity="0.15"/>
+
+  <!-- Outer progress ring (filled ~75%) -->
+  <circle cx="512" cy="512" r="320" fill="none" stroke="url(#purpleGrad)" stroke-width="14"
+          stroke-dasharray="2010" stroke-dashoffset="502" stroke-linecap="round"
+          transform="rotate(-90 512 512)"/>
+
+  <!-- Orbit 1 — horizontal ellipse -->
+  <ellipse cx="512" cy="512" rx="210" ry="105" fill="none" stroke="#A855F7" stroke-width="5" opacity="0.4"/>
+
+  <!-- Orbit 2 — rotated 60° -->
+  <g transform="rotate(60 512 512)">
+    <ellipse cx="512" cy="512" rx="210" ry="105" fill="none" stroke="#A855F7" stroke-width="5" opacity="0.4"/>
+  </g>
+
+  <!-- Orbit 3 — rotated 120° -->
+  <g transform="rotate(120 512 512)">
+    <ellipse cx="512" cy="512" rx="210" ry="105" fill="none" stroke="#A855F7" stroke-width="5" opacity="0.4"/>
+  </g>
+
+  <!-- Electrons -->
+  <circle cx="722" cy="512" r="18" fill="url(#purpleGrad)" filter="url(#glow)"/>
+
+  <g transform="rotate(60 512 512)">
+    <circle cx="302" cy="512" r="18" fill="url(#purpleGrad)" filter="url(#glow)"/>
+  </g>
+
+  <g transform="rotate(120 512 512)">
+    <circle cx="722" cy="512" r="18" fill="url(#purpleGrad)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Nucleus glow -->
+  <circle cx="512" cy="512" r="85" fill="#EC4899" opacity="0.15" filter="url(#outerGlow)"/>
+
+  <!-- Nucleus -->
+  <circle cx="512" cy="512" r="68" fill="url(#pinkGrad)" filter="url(#glow)"/>
+
+  <!-- Checkmark inside nucleus -->
+  <path d="M 482 516 L 502 538 L 546 488" stroke="white" stroke-width="13" fill="none"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#checkGlow)"/>
+</svg>

@@ -33,7 +33,7 @@ When you use AtomicMe, we collect and store the following information:
 
 ### Local Storage Only
 
-**All data is stored locally on your device.** We do not send your habit data to remote servers. Your personal information is stored in an encrypted SQLite database on your phone. The app functions entirely offline.
+**All data is stored locally on your device.** We do not send your habit data to remote servers. Your personal information is stored in a SQLite database on your phone, protected by your device's native file system security. The app functions entirely offline.
 
 ### Database Security
 
