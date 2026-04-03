@@ -115,6 +115,22 @@ export function openProfileSheet(state) {
         el.classList.toggle('selected', el.dataset.id === u.identity);
     });
 
+    // Custom identity panel — show and populate if the user has a custom identity
+    const customPanel = document.getElementById('ps-custom-panel');
+    if (customPanel) {
+        const isCustom = u.identity === 'custom';
+        customPanel.style.display = isCustom ? 'block' : 'none';
+        if (isCustom) {
+            const labelInput = document.getElementById('ps-custom-label');
+            if (labelInput) { labelInput.value = u.identityLabel || ''; }
+            // Pre-select the saved icon
+            const savedIcon = u.identityIcon || '⭐';
+            document.querySelectorAll('#ps-custom-icons .ob-custom-icon-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.icon === savedIcon);
+            });
+        }
+    }
+
     // Show sheet
     document.getElementById('profile-sheet-backdrop')?.classList.add('show');
     document.getElementById('profile-sheet')?.classList.add('show');
@@ -144,6 +160,14 @@ export function selectProfileIdentity(el) {
     document.querySelectorAll('.profile-identity-option').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     _profileSelectedIdentity = el.dataset.id || null;
+
+    const customPanel = document.getElementById('ps-custom-panel');
+    if (customPanel) {
+        customPanel.style.display = _profileSelectedIdentity === 'custom' ? 'block' : 'none';
+        if (_profileSelectedIdentity === 'custom') {
+            setTimeout(() => document.getElementById('ps-custom-label')?.focus(), 50);
+        }
+    }
 }
 
 /**
@@ -161,13 +185,26 @@ export function getSelectedIdentity() {
 
 /**
  * Read the profile edit form values and return the new profile data.
- * Returns null if validation fails (name empty or no identity selected).
+ * Returns null if validation fails (name empty, no identity selected, or custom
+ * identity selected but no label typed).
  *
  * @returns {{ name: string, identity: string, identityLabel: string, identityIcon: string }|null}
  */
 export function readProfileForm() {
     const name = (document.getElementById('ps-name-input')?.value || '').trim();
     if (!name || !_profileSelectedIdentity) { return null; }
+
+    if (_profileSelectedIdentity === 'custom') {
+        const label = (document.getElementById('ps-custom-label')?.value || '').trim();
+        if (!label) { return null; }
+        const icon = document.querySelector('#ps-custom-icons .ob-custom-icon-btn.selected')?.dataset.icon || '⭐';
+        return {
+            name,
+            identity:      'custom',
+            identityLabel: label,
+            identityIcon:  icon,
+        };
+    }
 
     const identity = IDENTITY_MAP[_profileSelectedIdentity];
     if (!identity) { return null; }

@@ -32,6 +32,15 @@ class StateController extends Controller
         // Format: { 'YYYY-MM-DD': [habitId, ...] }
         $completionsMap = [];
         $completionNotes = []; // Format: { 'YYYY-MM-DD:habitId': 'note text' }
+
+        // Per-habit completion date arrays (for streak calculation without extra queries)
+        // datesDesc: descending order for calculateStreakData
+        // datesAsc:  ascending order for calculateBestStreakData
+        // recentCount: count within last 90 days for calculatePhase
+        $habitDatesDesc = [];
+        $habitDatesAsc = [];
+        $habitRecentCount = [];
+
         foreach ($completionRows as $c) {
             $date = Carbon::parse($c->completed_date)->format('Y-m-d');
             $completionsMap[$date][] = $c->habit_id;
@@ -39,16 +48,27 @@ class StateController extends Controller
             if ($c->note) {
                 $completionNotes["{$date}:{$c->habit_id}"] = $c->note;
             }
+
+            // All rows are already within the 90-day window (fetched with $since filter)
+            $habitDatesAsc[$c->habit_id][] = $date;
+            $habitRecentCount[$c->habit_id] = ($habitRecentCount[$c->habit_id] ?? 0) + 1;
         }
 
-        // Current streaks and best streaks per habit
+        // Build descending date arrays by reversing the ascending ones
+        foreach ($habitDatesAsc as $habitId => $dates) {
+            $habitDatesDesc[$habitId] = array_reverse($dates);
+        }
+
+        // Current streaks and best streaks per habit — no per-habit DB queries
         $streaks = [];
         $bestStreaks = [];
         $streakData = [];
         $bestStreakData = [];
         foreach ($habits as $habit) {
-            $sd = $habit->calculateStreakData();
-            $bsd = $habit->calculateBestStreakData();
+            $datesDesc = $habitDatesDesc[$habit->id] ?? [];
+            $datesAsc = $habitDatesAsc[$habit->id] ?? [];
+            $sd = $habit->calculateStreakData($datesDesc);
+            $bsd = $habit->calculateBestStreakData($datesAsc);
             $streaks[$habit->id] = $sd['value'];
             $bestStreaks[$habit->id] = $bsd['value'];
             $streakData[$habit->id] = $sd;
@@ -81,10 +101,11 @@ class StateController extends Controller
                 'identityIcon' => $user->identity_icon,
                 'createdAt' => $user->created_at?->toDateString(),
             ],
-            'habits' => $habits->map(function ($habit) use ($streakData, $bestStreakData) {
+            'habits' => $habits->map(function ($habit) use ($streakData, $bestStreakData, $habitRecentCount) {
                 return $habit->toApiArray(
                     $streakData[$habit->id] ?? null,
-                    $bestStreakData[$habit->id] ?? null
+                    $bestStreakData[$habit->id] ?? null,
+                    $habitRecentCount[$habit->id] ?? 0,
                 );
             })->values(),
             'completions' => $completionsMap,

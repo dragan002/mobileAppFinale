@@ -26,6 +26,8 @@ class AchievementEvaluator
             'perfect_week' => fn () => $this->checkPerfectWeek($user),
             'habit_builder' => fn () => $this->checkHabitBuilder($user),
             'comeback' => fn () => $this->checkComeback($user, $toggledHabitId),
+            'streak_30' => fn () => $this->checkStreakMilestone($toggledHabitId, 30),
+            'streak_60' => fn () => $this->checkStreakMilestone($toggledHabitId, 60),
             'one_percent_club' => fn () => $this->checkOnePercentClub($user),
             'atomic_identity' => fn () => $this->checkAtomicIdentity($user),
             'perfect_quarter' => fn () => $this->checkPerfectQuarter($user, $toggledHabitId),
@@ -156,6 +158,20 @@ class AchievementEvaluator
             ->exists();
 
         return $hasHistoricalCompletion;
+    }
+
+    /**
+     * Streak milestone: the toggled habit's current streak has reached the given threshold.
+     */
+    private function checkStreakMilestone(int $habitId, int $threshold): bool
+    {
+        $habit = Habit::find($habitId);
+
+        if (! $habit) {
+            return false;
+        }
+
+        return $habit->calculateStreak() >= $threshold;
     }
 
     /**

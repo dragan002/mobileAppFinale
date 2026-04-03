@@ -38,6 +38,55 @@ const QUOTES = [
     "Until you make the unconscious conscious, it will direct your life and you will call it fate.",
 ];
 
+/**
+ * Identity-specific motivational prompts.
+ * Each entry is a short reinforcing message for someone building that identity.
+ */
+const IDENTITY_PROMPTS = {
+    athlete:  [
+        "Athletes don't decide whether to train — the decision is already made.",
+        "Your body keeps score. Show up and earn the points.",
+        "Every rep is a vote: I am someone who moves.",
+        "Champions aren't built on motivation. They're built on showing up.",
+        "Physical strength starts before you lift anything — it starts here.",
+    ],
+    learner:  [
+        "Learners don't wait to feel curious — they read first, then feel it.",
+        "Every page is a vote: I am someone who grows.",
+        "The best investment you'll ever make is in your own mind.",
+        "Knowledge compounds. Show up today and add to your edge.",
+        "Curiosity is a skill. You sharpen it every time you open a book.",
+    ],
+    creator:  [
+        "Creators don't wait for inspiration — they show up and inspiration follows.",
+        "Every brushstroke, every word, every line is a vote: I am a maker.",
+        "Your creative identity is built in the daily act of making something.",
+        "The work doesn't have to be perfect today. It has to exist.",
+        "Creativity is a habit, not a talent.",
+    ],
+    mindful:  [
+        "Presence is a practice. Every breath is a rep.",
+        "Every moment you return to stillness is a vote: I am someone who is calm.",
+        "You can't control the weather. You can control how you meet it.",
+        "Mindfulness isn't a retreat from life — it's how you fully enter it.",
+        "Peace isn't found. It's practiced.",
+    ],
+    leader:   [
+        "Leaders act before they feel ready — that's what makes them leaders.",
+        "Every decision with integrity is a vote: I am someone who can be trusted.",
+        "Your habits are your reputation. Build it deliberately.",
+        "The person others follow is the person who shows up first.",
+        "Influence starts with what you do when no one is watching.",
+    ],
+    healthy:  [
+        "Health is built in the ordinary moments, not the extraordinary ones.",
+        "Every nourishing choice is a vote: I am someone who takes care of myself.",
+        "Your future self is shaped by what you do today — not someday.",
+        "Wellness isn't a destination. It's a daily practice.",
+        "The body you want is built one habit at a time.",
+    ],
+};
+
 // ─────────────────────────────────────────────
 //  Private helpers
 // ─────────────────────────────────────────────
@@ -105,7 +154,10 @@ export function render(state) {
     else if (allDone)       { sub = 'All done! Perfect day. Keep the chain going! 🔥'; }
     else                    { sub = `${total - done} habit${(total - done) > 1 ? 's' : ''} to go — you can do this!`; }
 
-    const quote = `"${QUOTES[new Date().getDate() % QUOTES.length]}"`;
+    const message      = pickDailyMessage(state);
+    const quote        = identityData
+        ? `<span class="daily-quote-label">${identityData.icon} ${identityData.label}</span>${message}`
+        : `"${message}"`;
     const initials = u.name[0].toUpperCase();
 
     const habitsHtml = renderHabitsList(state, activeHabits, completedIds);
@@ -344,14 +396,39 @@ export function updateGreeting(state) {
 }
 
 /**
- * Update the daily quote element.
+ * Pick the daily message for the home screen.
+ * Uses identity-specific prompts when available, falls back to the general quote pool.
  *
+ * @param {Object|null} state  Global application state (or null if not yet loaded).
+ * @returns {string}  The message text (without surrounding quotes).
+ */
+export function pickDailyMessage(state) {
+    const identity = state && state.user && state.user.identity;
+    const pool     = (identity && IDENTITY_PROMPTS[identity]) ? IDENTITY_PROMPTS[identity] : QUOTES;
+    return pool[new Date().getDate() % pool.length];
+}
+
+/**
+ * Update the daily quote/motivation element.
+ *
+ * @param {Object|null} state  Global application state (or null to use fallback quotes).
  * @returns {void}
  */
-export function updateDailyQuote() {
+export function updateDailyQuote(state) {
     const quoteEl = document.getElementById('daily-quote');
-    if (quoteEl) {
-        quoteEl.textContent = `"${QUOTES[new Date().getDate() % QUOTES.length]}"`;
+    if (!quoteEl) { return; }
+
+    const identity     = state && state.user && state.user.identity;
+    const identityData = identity ? (IDENTITY_MAP[identity] || null) : null;
+    const message      = pickDailyMessage(state);
+
+    if (identityData) {
+        quoteEl.innerHTML = `
+            <span class="daily-quote-label">${identityData.icon} ${identityData.label}</span>
+            ${message}
+        `;
+    } else {
+        quoteEl.textContent = `"${message}"`;
     }
 }
 

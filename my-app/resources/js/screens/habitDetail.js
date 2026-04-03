@@ -445,15 +445,24 @@ export function updateDetailScreen(state, id) {
         }
     }
 
-    // Complete button
-    const btnEl = document.getElementById('detail-complete-btn');
-    if (btnEl) {
+    // Completion status chip
+    const chipEl    = document.getElementById('detail-completion-chip');
+    const chipIcon  = document.getElementById('detail-chip-icon');
+    const chipLabel = document.getElementById('detail-chip-label');
+    const chipSub   = document.getElementById('detail-chip-sub');
+    if (chipEl) {
         if (todayDone) {
-            btnEl.textContent = '✓ Completed Today!';
-            btnEl.classList.add('is-done');
+            chipEl.classList.remove('pending');
+            chipEl.classList.add('done');
+            if (chipIcon)  { chipIcon.textContent  = '✓'; }
+            if (chipLabel) { chipLabel.textContent  = 'Completed today'; }
+            if (chipSub)   { chipSub.textContent    = 'Tap to undo'; }
         } else {
-            btnEl.textContent = '✓ Complete for Today';
-            btnEl.classList.remove('is-done');
+            chipEl.classList.remove('done');
+            chipEl.classList.add('pending');
+            if (chipIcon)  { chipIcon.textContent  = ''; }
+            if (chipLabel) { chipLabel.textContent  = 'Tap to mark complete'; }
+            if (chipSub)   { chipSub.textContent    = 'Not done today'; }
         }
     }
 }

@@ -11,17 +11,35 @@
 
 /**
  * Build the HTML for the standard 1%-per-day compound growth chart.
- * Uses 6 data points spanning 1 week → 1 year.
+ * Uses 5 data points at 0, 30, 90, 180, and 365 days.
+ * An optional `currentDay` highlights which bar the user is closest to.
  *
+ * @param {number} [currentDay=0]  User's best streak in days, used to mark progress.
  * @returns {string} HTML string of .compound-bar divs.
  */
-export function renderCompoundChartHtml() {
-    const points = [1, 4, 8, 13, 26, 52];
+export function renderCompoundChartHtml(currentDay = 0) {
+    // Each entry: [days, display multiplier label]
+    const points = [
+        [0,   '1x'],
+        [30,  '1.3x'],
+        [90,  '2.5x'],
+        [180, '6x'],
+        [365, '37x'],
+    ];
     const maxVal = Math.pow(1.01, 365);
-    return points.map(week => {
-        const val    = Math.pow(1.01, week * 7);
+
+    return points.map(([day, multiplierLabel]) => {
+        const val    = day === 0 ? 1 : Math.pow(1.01, day);
         const height = Math.max(4, (val / maxVal) * 100);
-        return `<div class="compound-bar" style="height:${height}%"></div>`;
+
+        // Mark this bar if the user's streak is within this segment
+        const isActive = currentDay >= day && currentDay < (points[points.indexOf(points.find(p => p[0] === day)) + 1]?.[0] ?? Infinity);
+        const activeAttr = isActive ? ' data-active="true"' : '';
+
+        return `<div class="compound-bar-wrap">
+            <div class="compound-bar-label">${multiplierLabel}</div>
+            <div class="compound-bar${isActive ? ' compound-bar--active' : ''}" style="height:${height}%"${activeAttr}></div>
+        </div>`;
     }).join('');
 }
 

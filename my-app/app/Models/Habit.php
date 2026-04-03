@@ -50,14 +50,20 @@ class Habit extends Model
     /**
      * Returns structured streak data: { value, unit, graceDayActive }.
      * Used by toApiArray() and StateController.
+     *
+     * @param  string[]|null  $preloadedDates  Dates descending (Y-m-d). Pass to avoid a DB query.
      */
-    public function calculateStreakData(): array
+    public function calculateStreakData(?array $preloadedDates = null): array
     {
-        $completions = $this->completions()
-            ->orderBy('completed_date', 'desc')
-            ->pluck('completed_date')
-            ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
-            ->toArray();
+        if ($preloadedDates !== null) {
+            $completions = $preloadedDates;
+        } else {
+            $completions = $this->completions()
+                ->orderBy('completed_date', 'desc')
+                ->pluck('completed_date')
+                ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
+                ->toArray();
+        }
 
         if ($this->target_days_per_week === 7) {
             return $this->calculateDailyStreakData($completions);
@@ -145,14 +151,20 @@ class Habit extends Model
 
     /**
      * Returns structured best streak data: { value, unit }.
+     *
+     * @param  string[]|null  $preloadedDates  Dates ascending (Y-m-d). Pass to avoid a DB query.
      */
-    public function calculateBestStreakData(): array
+    public function calculateBestStreakData(?array $preloadedDates = null): array
     {
-        $completions = $this->completions()
-            ->orderBy('completed_date')
-            ->pluck('completed_date')
-            ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
-            ->toArray();
+        if ($preloadedDates !== null) {
+            $completions = $preloadedDates;
+        } else {
+            $completions = $this->completions()
+                ->orderBy('completed_date')
+                ->pluck('completed_date')
+                ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
+                ->toArray();
+        }
 
         if ($this->target_days_per_week === 7) {
             return [
@@ -255,14 +267,18 @@ class Habit extends Model
         return $best;
     }
 
-    public function calculatePhase(?int $streak = null): array
+    /**
+     * @param  int|null  $streak  Pass to avoid a redundant streak calculation.
+     * @param  int|null  $recentCompletionCount  Count of completions in the last 90 days. Pass to avoid a DB query.
+     */
+    public function calculatePhase(?int $streak = null, ?int $recentCompletionCount = null): array
     {
         $streak = $streak ?? $this->calculateStreak();
         $daysSinceCreation = $this->created_at->diffInDays(Carbon::today());
 
         // Expected completions in 90 days, adjusted for frequency
         $expectedCompletions = $this->target_days_per_week * 13; // ~13 weeks in 90 days
-        $recentCompletions = $this->completions()
+        $recentCompletions = $recentCompletionCount ?? $this->completions()
             ->where('completed_date', '>=', Carbon::today()->subDays(90))
             ->count();
         $consistencyRate = min($recentCompletions / max($expectedCompletions, 1), 1.0);
@@ -304,11 +320,19 @@ class Habit extends Model
         }
     }
 
-    public function toApiArray(?array $precomputedStreakData = null, ?array $precomputedBestStreakData = null): array
-    {
+    /**
+     * @param  array|null  $precomputedStreakData  Pass to avoid a DB query.
+     * @param  array|null  $precomputedBestStreakData  Pass to avoid a DB query.
+     * @param  int|null  $recentCompletionCount  Count of completions in last 90 days. Pass to avoid a DB query.
+     */
+    public function toApiArray(
+        ?array $precomputedStreakData = null,
+        ?array $precomputedBestStreakData = null,
+        ?int $recentCompletionCount = null,
+    ): array {
         $streakData = $precomputedStreakData ?? $this->calculateStreakData();
         $bestStreakData = $precomputedBestStreakData ?? $this->calculateBestStreakData();
-        $phase = $this->calculatePhase($streakData['value'] ?? 0);
+        $phase = $this->calculatePhase($streakData['value'] ?? 0, $recentCompletionCount);
 
         return [
             'id' => $this->id,

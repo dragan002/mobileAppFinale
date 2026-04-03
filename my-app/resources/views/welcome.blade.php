@@ -7,21 +7,30 @@
     <meta name="theme-color" content="#0F1221">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AtomicMe</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="preload" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="{{ asset('css/design-tokens.css') }}">
     @vite('resources/js/app.js')
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; background: #0F1221; color: #EAEDF6; overflow: hidden; max-width: 100vw; overflow-x: hidden; }
+        html, body { height: 100%; font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #0F1221; color: #EAEDF6; overflow: hidden; max-width: 100vw; overflow-x: hidden; }
 
         /* ── SCREENS ── */
         .screen { position: fixed; inset: 0; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; opacity: 0; pointer-events: none; transform: translateX(30px); transition: opacity .3s, transform .3s; }
         .screen.active { opacity: 1; pointer-events: all; transform: translateX(0); }
         .screen.slide-left { transform: translateX(-30px); }
 
+        /* ── BOOT / LOADING ── */
+        #screen-boot { background: #0F1221; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; }
+        .boot-logo { font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
+        .boot-logo span { background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .boot-dot { width: 10px; height: 10px; border-radius: 50%; background: #A855F7; animation: boot-pulse 1.4s ease-in-out infinite; }
+        @keyframes boot-pulse { 0%, 100% { opacity: 0.2; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
+        .boot-label { font-size: 0.8rem; color: #5A6180; letter-spacing: 0.05em; }
+
         /* ── ONBOARDING ── */
-        #screen-onboarding { background: linear-gradient(160deg, #0F1221 0%, #1a0a2e 100%); padding: 2rem 1.5rem 6rem; justify-content: flex-start; padding-top: max(2rem, 8vh); }
+        #screen-onboarding { background: linear-gradient(160deg, #0F1221 0%, #1a0a2e 100%); padding: max(2rem, env(safe-area-inset-top, 2rem)) 1.5rem calc(2rem + env(safe-area-inset-bottom, 1.5rem)); justify-content: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .ob-logo { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.25rem; }
         .ob-logo span { background: linear-gradient(135deg, #a78bfa, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .ob-tagline { font-size: 0.85rem; color: #8B92AB; margin-bottom: 3rem; }
@@ -47,6 +56,8 @@
         .identity-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .identity-card .label { font-size: 0.85rem; font-weight: 600; color: #EAEDF6; }
         .identity-card .sub { font-size: 0.7rem; color: #8B92AB; margin-top: 0.2rem; }
+        .ob-custom-icon-btn { background: #0F1221; border: 2px solid #2A3152; border-radius: 0.5rem; padding: 0.5rem; font-size: 1.3rem; cursor: pointer; transition: all .15s; text-align: center; width: 2.75rem; height: 2.75rem; display: flex; align-items: center; justify-content: center; }
+        .ob-custom-icon-btn.selected { border-color: #A855F7; background: #1f1535; }
         .ob-name-wrap { margin-bottom: 1.5rem; }
         .ob-name-wrap label { font-size: 0.8rem; color: #8B92AB; display: block; margin-bottom: 0.5rem; }
         .ob-name-wrap input { width: 100%; background: #1A1F35; border: 2px solid #2A3152; border-radius: 0.75rem; padding: 0.875rem 1rem; color: #EAEDF6; font-size: 1rem; font-family: inherit; outline: none; }
@@ -99,7 +110,7 @@
           50% { opacity: 1; }
         }
         .progress-sub { font-size: 0.72rem; opacity: 0.7; margin-top: 0.5rem; }
-        .identity-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.15); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.7rem; font-weight: 600; margin-top: 0.75rem; }
+        .identity-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.15); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.7rem; font-weight: 600; margin-top: 0.75rem; margin-bottom: 1.25rem; }
 
         /* Section */
         .section-header { display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem; margin-bottom: 0.75rem; }
@@ -163,7 +174,7 @@
         }
 
         /* Add button */
-        .add-habit-btn { margin: 0 1.25rem; width: calc(100% - 2.5rem); padding: 1rem; background: transparent; border: 2px dashed #2A3152; border-radius: 1rem; color: #5A6180; font-size: 0.875rem; font-family: inherit; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .add-habit-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: calc(100% - 2.5rem); margin: 0 1.25rem; padding: 1rem; min-height: 3rem; background: transparent; border: 2px dashed #2A3152; border-radius: 1rem; color: #5A6180; font-size: 0.875rem; font-family: inherit; cursor: pointer; transition: all .2s; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .add-habit-btn:active { border-color: #A855F7; color: #C084FC; }
 
         /* Empty state */
@@ -176,15 +187,16 @@
         .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
         .empty-state p { color: #8B92AB; font-size: 0.875rem; }
 
-        /* Daily quote */
-        .daily-quote { margin: 0.75rem 1.25rem 0; padding: 0.875rem 1rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; font-size: 0.75rem; color: #8B92AB; line-height: 1.6; font-style: italic; }
+        /* Daily quote / identity motivation */
+        .daily-quote { margin: 0.75rem 1.25rem 0; padding: 0.875rem 1rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; font-size: 0.8rem; color: #EAEDF6; line-height: 1.6; }
+        .daily-quote-label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #A855F7; font-style: normal; font-weight: 700; margin-bottom: 0.3rem; }
 
         /* Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.4rem 0 max(0.75rem, env(safe-area-inset-bottom)); z-index: 1000; flex-shrink: 0; width: 100%; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #242B45; border-top: 1px solid #2A3152; display: flex; justify-content: space-around; padding: 0.2rem 0 max(0.35rem, env(safe-area-inset-bottom)); z-index: 1000; flex-shrink: 0; width: 100%; }
         .bottom-nav.hidden { display: none; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.7rem; color: #8B92AB; cursor: pointer; padding: 0.5rem 0; min-height: 44px; min-width: 44px; transition: color .2s; flex: 1; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; font-size: 0.6rem; color: #8B92AB; cursor: pointer; padding: 0.25rem 0; min-height: 36px; min-width: 44px; transition: color .2s; flex: 1; }
         .nav-item.active { color: #C084FC; }
-        .nav-icon { font-size: 1.25rem; }
+        .nav-icon { font-size: 1.1rem; }
 
         /* Active indicator dot below icon */
         .nav-item.active::after {
@@ -254,11 +266,23 @@
         .stats-section { padding: 0 1.25rem 1.25rem; overflow-x: hidden; }
         .stats-card { background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1.25rem; margin-bottom: 0.75rem; overflow: hidden; }
         .stats-card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 1rem; }
-        .compound-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; }
-        .compound-bar { flex: 1; min-width: 0; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; }
-        .compound-bar:last-child { opacity: 1; }
-        .chart-labels { display: flex; justify-content: space-between; margin-top: 0.5rem; overflow: hidden; }
-        .chart-labels span { font-size: 0.6rem; color: #5A6180; }
+        .compound-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+        .compound-chart--labeled { height: 90px; }
+        .compound-bar-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; }
+        .compound-bar { flex: 1; min-width: 0; background: linear-gradient(to top, #7c3aed, #db2777); border-radius: 3px 3px 0 0; min-height: 3px; transition: height .5s ease; opacity: 0.85; align-self: stretch; }
+        /* Inside the labeled compound chart, bars are fixed-height and sit at the bottom */
+        .compound-bar-wrap .compound-bar { flex: none; width: 100%; opacity: 0.5; }
+        /* When no YOU badge, the bar itself gets pushed to the bottom */
+        .compound-bar-wrap > .compound-bar:last-child { margin-top: auto; }
+        .compound-bar--active { opacity: 1 !important; box-shadow: 0 0 8px #a855f780; }
+        .compound-bar-multiplier { font-size: 0.55rem; color: #5A6180; text-align: center; flex-shrink: 0; }
+        .compound-bar-multiplier--active { color: #C084FC; font-weight: 700; }
+        /* YOU badge pushes itself and the bar that follows to the bottom */
+        .compound-bar-you { font-size: 0.42rem; font-weight: 800; color: #fff; background: #a855f7; border-radius: 3px; padding: 1px 4px; letter-spacing: 0.05em; white-space: nowrap; flex-shrink: 0; margin-top: auto; }
+        .compound-footer { font-size: 0.72rem; color: #5A6180; margin: 0.5rem 0 0; line-height: 1.5; }
+        .compound-footer strong { color: #C084FC; }
+        .chart-labels { display: flex; justify-content: space-between; margin-top: 0.4rem; overflow: hidden; }
+        .chart-labels span { font-size: 0.58rem; color: #5A6180; }
         .stats-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
         .stat-box { flex: 1; background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1rem; text-align: center; }
         .stat-box .val { font-size: 2rem; font-weight: 700; color: #EAEDF6; background: linear-gradient(135deg, #C084FC, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -282,12 +306,39 @@
         .week-dot.done { background: linear-gradient(135deg, #7c3aed, #db2777); }
         .week-dot.partial { background: #3b1f6e; }
 
+        /* ── HABIT CALENDAR ── */
+        .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .cal-nav-title { font-size: 0.88rem; font-weight: 700; color: #EAEDF6; }
+        .cal-nav-btn { background: #242B45; border: none; color: #C084FC; font-size: 1.1rem; width: 2rem; height: 2rem; border-radius: 0.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .cal-nav-btn:active { opacity: 0.7; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .cal-day-label { text-align: center; font-size: 0.6rem; color: #5A6180; font-weight: 600; padding-bottom: 0.3rem; }
+        .cal-cell { aspect-ratio: 1; border-radius: 0.35rem; background: #242B45; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity .15s; }
+        .cal-cell:active { opacity: 0.75; }
+        .cal-cell.cal-empty { background: transparent; cursor: default; pointer-events: none; }
+        .cal-cell.cal-future { background: #1A1F35; opacity: 0.4; cursor: default; pointer-events: none; }
+        .cal-cell.cal-all-done { background: linear-gradient(135deg, #7c3aed, #db2777); }
+        .cal-cell.cal-partial { background: #3b1f6e; }
+        .cal-cell.cal-today { outline: 2px solid #C084FC; outline-offset: 1px; }
+        .cal-cell-num { font-size: 0.6rem; color: #8B92AB; line-height: 1; position: absolute; top: 2px; left: 3px; }
+        .cal-cell.cal-all-done .cal-cell-num { color: rgba(255,255,255,0.8); }
+        .cal-cell.cal-partial .cal-cell-num { color: rgba(255,255,255,0.7); }
+        .cal-dots { position: absolute; bottom: 2px; display: flex; gap: 1px; justify-content: center; flex-wrap: wrap; width: 100%; padding: 0 2px; }
+        .cal-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.6); flex-shrink: 0; }
+        .cal-day-popup { background: #1A1F35; border: 1px solid #2A3152; border-radius: 0.75rem; padding: 0.75rem 1rem; margin-top: 0.75rem; display: none; }
+        .cal-day-popup.show { display: block; }
+        .cal-day-popup-date { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 0.5rem; }
+        .cal-day-popup-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #EAEDF6; padding: 0.25rem 0; }
+        .cal-day-popup-dot { width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #db2777); flex-shrink: 0; }
+        .cal-day-popup-empty { font-size: 0.8rem; color: #5A6180; font-style: italic; }
+        .cal-cell.cal-selected { outline: 2px solid #ec4899; outline-offset: 1px; }
+
         /* ── HABIT DETAIL SCREEN ── */
         #screen-habit-detail { background: #0F1221; padding: 0; }
         .detail-header { padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1.25rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #2A3152; flex-shrink: 0; }
         .detail-header h2 { font-size: 1rem; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .detail-delete-btn { background: none; border: none; color: #8B92AB; font-size: 1.1rem; cursor: pointer; padding: 0.5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
-        .detail-body { flex: 1; overflow-y: auto; padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); -webkit-overflow-scrolling: touch; }
+        .detail-body { flex: 1; overflow-y: auto; padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); -webkit-overflow-scrolling: touch; }
 
         .streak-hero { text-align: center; padding: 2rem 1.25rem 1.5rem; }
         .streak-fire { font-size: 3.5rem; margin-bottom: 0.25rem; line-height: 1; }
@@ -306,17 +357,19 @@
         .insight-card { margin: 0 1.25rem 0.75rem; background: #1A1F35; border: 1px solid #2A3152; border-left: 3px solid #A855F7; border-radius: 0 0.75rem 0.75rem 0; padding: 0.875rem 1rem; font-size: 0.82rem; color: #8B92AB; line-height: 1.6; }
         .insight-card strong { color: #EAEDF6; }
 
-        .detail-action-row {
-          position: sticky;
-          bottom: 0;
-          padding: 1rem 1.25rem calc(1.5rem + 56px + env(safe-area-inset-bottom, 0px));
-          background: linear-gradient(to top, #0F1221 80%, transparent);
-          margin: 0;
-          z-index: 50;
-        }
-        .btn-complete { width: 100%; padding: 1rem; background: linear-gradient(135deg, #7c3aed, #db2777); border: none; border-radius: 0.875rem; color: #fff; font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .2s; }
-        .btn-complete.is-done { background: #1a3024; color: #34D399; border: 2px solid #34D39944; }
-        .btn-complete:active { opacity: 0.85; transform: scale(0.98); }
+        .detail-completion-chip { margin: 0.875rem 1.25rem 0; border-radius: 1rem; padding: 0.875rem 1.125rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: opacity .15s, transform .1s; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .detail-completion-chip:active { opacity: 0.8; transform: scale(0.98); }
+        .detail-completion-chip.pending { background: #1A1F35; border: 1px dashed #3D4566; }
+        .detail-completion-chip.done { background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.35); }
+        .detail-completion-chip .chip-icon { width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; }
+        .detail-completion-chip.pending .chip-icon { background: #242B45; border: 2px solid #3D4566; }
+        .detail-completion-chip.done .chip-icon { background: rgba(52, 211, 153, 0.15); border: 2px solid #34D399; }
+        .detail-completion-chip .chip-text { flex: 1; }
+        .detail-completion-chip .chip-label { font-size: 0.9rem; font-weight: 600; }
+        .detail-completion-chip.pending .chip-label { color: #8B92AB; }
+        .detail-completion-chip.done .chip-label { color: #34D399; }
+        .detail-completion-chip .chip-sub { font-size: 0.72rem; margin-top: 0.1rem; color: #5A6282; }
+        .detail-completion-chip.done .chip-sub { color: rgba(52, 211, 153, 0.6); }
 
         .setup-card { margin: 0 1.25rem 0.75rem; background: #1A1F35; border: 1px solid #2A3152; border-radius: 1rem; padding: 1rem; }
         .setup-card-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8B92AB; margin-bottom: 0.875rem; }
@@ -509,7 +562,7 @@
 </div>
 
 <!-- ══════════════════ DELETE BOTTOM SHEET ══════════════════ -->
-<div id="delete-sheet" style="display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.6);">
+<div id="delete-sheet" style="display:none; position:fixed; inset:0; z-index:1100; background:rgba(0,0,0,0.6);">
   <div style="position:absolute; bottom:0; left:0; right:0; background:#1A1F35; border:1px solid #2A3152; border-radius:1rem 1rem 0 0; padding:1.5rem 1.25rem max(1.5rem, env(safe-area-inset-bottom));">
     <p style="color:#EAEDF6; font-size:1rem; font-weight:600; margin-bottom:0.5rem;" id="delete-sheet-title">Delete habit?</p>
     <p style="color:#8B92AB; font-size:0.85rem; margin-bottom:1.5rem;">This will remove all completion history for this habit.</p>
@@ -586,6 +639,29 @@
                 <div class="profile-identity-option" data-id="healthy" onclick="selectProfileIdentity(this)">
                     <div class="pi-icon">🥗</div><div class="pi-label">The Healthy</div>
                 </div>
+                <div class="profile-identity-option" data-id="custom" onclick="selectProfileIdentity(this)">
+                    <div class="pi-icon">✏️</div><div class="pi-label">Custom</div>
+                </div>
+            </div>
+
+            <div id="ps-custom-panel" style="display:none; background: #0F1221; border: 2px solid #A855F7; border-radius: 1rem; padding: 1rem; margin-top: 0.5rem;">
+                <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Your identity label</div>
+                <input type="text" id="ps-custom-label" class="profile-form-input" placeholder='e.g. "The Focused Parent"' maxlength="30" style="margin-bottom: 0.875rem;">
+                <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Choose an icon</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="ps-custom-icons">
+                    <button class="ob-custom-icon-btn selected" data-icon="⭐" type="button" onclick="selectPsCustomIcon(this)">⭐</button>
+                    <button class="ob-custom-icon-btn" data-icon="🌟" type="button" onclick="selectPsCustomIcon(this)">🌟</button>
+                    <button class="ob-custom-icon-btn" data-icon="💫" type="button" onclick="selectPsCustomIcon(this)">💫</button>
+                    <button class="ob-custom-icon-btn" data-icon="🌈" type="button" onclick="selectPsCustomIcon(this)">🌈</button>
+                    <button class="ob-custom-icon-btn" data-icon="🎯" type="button" onclick="selectPsCustomIcon(this)">🎯</button>
+                    <button class="ob-custom-icon-btn" data-icon="🔑" type="button" onclick="selectPsCustomIcon(this)">🔑</button>
+                    <button class="ob-custom-icon-btn" data-icon="💡" type="button" onclick="selectPsCustomIcon(this)">💡</button>
+                    <button class="ob-custom-icon-btn" data-icon="🌱" type="button" onclick="selectPsCustomIcon(this)">🌱</button>
+                    <button class="ob-custom-icon-btn" data-icon="🦋" type="button" onclick="selectPsCustomIcon(this)">🦋</button>
+                    <button class="ob-custom-icon-btn" data-icon="🌊" type="button" onclick="selectPsCustomIcon(this)">🌊</button>
+                    <button class="ob-custom-icon-btn" data-icon="🔮" type="button" onclick="selectPsCustomIcon(this)">🔮</button>
+                    <button class="ob-custom-icon-btn" data-icon="🎭" type="button" onclick="selectPsCustomIcon(this)">🎭</button>
+                </div>
             </div>
         </div>
 
@@ -618,8 +694,15 @@
     </div>
 </div>
 
+<!-- ══════════════════ SCREEN: BOOT (loading) ══════════════════ -->
+<div class="screen active" id="screen-boot">
+    <div class="boot-logo"><span>AtomicMe</span></div>
+    <div class="boot-dot"></div>
+    <div class="boot-label">Loading...</div>
+</div>
+
 <!-- ══════════════════ SCREEN: ONBOARDING ══════════════════ -->
-<div class="screen active" id="screen-onboarding">
+<div class="screen" id="screen-onboarding">
     <div class="ob-logo"><span>AtomicMe</span></div>
     <div class="ob-tagline">Tiny changes. Remarkable results.</div>
 
@@ -644,6 +727,30 @@
         </div>
         <div class="identity-card" data-id="healthy" onclick="selectIdentity(this)">
             <div class="icon">🥗</div><div class="label">The Healthy</div><div class="sub">Nourished &amp; strong</div>
+        </div>
+        <div class="identity-card" data-id="custom" onclick="selectIdentity(this)">
+            <div class="icon">✏️</div><div class="label">Custom</div><div class="sub">Define your own</div>
+        </div>
+    </div>
+
+    <div id="ob-custom-panel" style="display:none; margin-bottom: 1.5rem; background: #1A1F35; border: 2px solid #A855F7; border-radius: 1rem; padding: 1rem;">
+        <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Your identity label</div>
+        <input type="text" id="ob-custom-label" placeholder='e.g. "The Focused Parent"' maxlength="30" oninput="checkObReady()"
+            style="width: 100%; background: #0F1221; border: 2px solid #2A3152; border-radius: 0.625rem; padding: 0.75rem 1rem; color: #EAEDF6; font-size: 0.92rem; font-family: inherit; outline: none; margin-bottom: 0.875rem;">
+        <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Choose an icon</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="ob-custom-icons">
+            <button class="ob-custom-icon-btn selected" data-icon="⭐" type="button" onclick="selectObCustomIcon(this)">⭐</button>
+            <button class="ob-custom-icon-btn" data-icon="🌟" type="button" onclick="selectObCustomIcon(this)">🌟</button>
+            <button class="ob-custom-icon-btn" data-icon="💫" type="button" onclick="selectObCustomIcon(this)">💫</button>
+            <button class="ob-custom-icon-btn" data-icon="🌈" type="button" onclick="selectObCustomIcon(this)">🌈</button>
+            <button class="ob-custom-icon-btn" data-icon="🎯" type="button" onclick="selectObCustomIcon(this)">🎯</button>
+            <button class="ob-custom-icon-btn" data-icon="🔑" type="button" onclick="selectObCustomIcon(this)">🔑</button>
+            <button class="ob-custom-icon-btn" data-icon="💡" type="button" onclick="selectObCustomIcon(this)">💡</button>
+            <button class="ob-custom-icon-btn" data-icon="🌱" type="button" onclick="selectObCustomIcon(this)">🌱</button>
+            <button class="ob-custom-icon-btn" data-icon="🦋" type="button" onclick="selectObCustomIcon(this)">🦋</button>
+            <button class="ob-custom-icon-btn" data-icon="🌊" type="button" onclick="selectObCustomIcon(this)">🌊</button>
+            <button class="ob-custom-icon-btn" data-icon="🔮" type="button" onclick="selectObCustomIcon(this)">🔮</button>
+            <button class="ob-custom-icon-btn" data-icon="🎭" type="button" onclick="selectObCustomIcon(this)">🎭</button>
         </div>
     </div>
 
@@ -687,7 +794,7 @@
     </div>
 
     <button class="add-habit-btn" onclick="showScreen('screen-add')">
-        <span style="font-size:1.1rem">+</span> Add New Habit
+        <span style="font-size:1.1rem; pointer-events:none;">+</span><span style="pointer-events:none;">Add New Habit</span>
     </button>
 
     <div class="reminder-permission-banner" id="home-reminder-permission-banner" style="margin-top:0.75rem;">
@@ -916,9 +1023,9 @@
         </div>
 
         <div class="stats-card">
-            <h3>1% Compound Growth</h3>
-            <div class="compound-chart" id="compound-chart"></div>
-            <div class="chart-labels"><span>Week 1</span><span>Week 4</span><span>Week 12</span><span>Week 26</span><span>1 Year</span></div>
+            <h3>The 1% Rule</h3>
+            <p style="font-size:0.72rem;color:#5A6180;margin:-0.5rem 0 1rem;line-height:1.4;">Get 1% better each day. See where that puts you.</p>
+            <div id="compound-section"></div>
         </div>
 
         <div class="stats-card">
@@ -935,6 +1042,20 @@
             <h3>Identity Votes</h3>
             <div id="identity-votes-list"></div>
         </div>
+
+        <div class="stats-card">
+            <h3>Monthly Calendar</h3>
+            <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+                <span class="cal-nav-title" id="cal-month-title"></span>
+                <button class="cal-nav-btn" onclick="calNext()" id="cal-next-btn">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-day-popup" id="cal-day-popup">
+                <div class="cal-day-popup-date" id="cal-popup-date"></div>
+                <div id="cal-popup-items"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -944,7 +1065,7 @@
         <div class="header-greeting">
             <button onclick="showTab('screen-home', null)" style="background:none;border:none;padding:0;color:#A855F7;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
             <h2>Compound Growth</h2>
-            <p>Your 1% advantage over time.</p>
+            <p>How consistent are you, really?</p>
         </div>
         <div class="avatar" id="growth-avatar" onclick="openProfileSheet()">?</div>
     </div>
@@ -1021,6 +1142,14 @@
         <button class="detail-delete-btn" onclick="deleteHabitFromDetail()" title="Delete habit">🗑</button>
     </div>
     <div class="detail-body">
+        <div class="detail-completion-chip pending" id="detail-completion-chip" onclick="toggleHabitFromDetail()">
+            <div class="chip-icon" id="detail-chip-icon"></div>
+            <div class="chip-text">
+                <div class="chip-label" id="detail-chip-label">Tap to mark complete</div>
+                <div class="chip-sub" id="detail-chip-sub">Not done today</div>
+            </div>
+        </div>
+
         <div class="streak-hero">
             <div class="streak-fire" id="detail-fire">💤</div>
             <div class="streak-count-num" id="detail-streak-num">0</div>
@@ -1078,6 +1207,7 @@
                 <div class="reminder-card-sub">
                     Remind me at <input type="time" id="detail-reminder-time" style="width:80px;background:#1A1F35;border:1px solid #2A3152;border-radius:0.4rem;color:#EAEDF6;padding:0.25rem 0.5rem;font-family:inherit;font-size:0.85rem;" onchange="handleReminderTimeChange(this.value)">
                 </div>
+                <div style="font-size:0.68rem;color:#5A6180;margin-top:0.35rem;">Push notifications coming soon</div>
             </div>
             <label class="reminder-toggle">
                 <input type="checkbox" id="detail-reminder-toggle" onchange="handleReminderToggle(this.checked)">
@@ -1085,11 +1215,6 @@
             </label>
         </div>
 
-        <div class="detail-action-row">
-            <button class="btn-complete" id="detail-complete-btn" onclick="toggleHabitFromDetail()">
-                ✓ Complete for Today
-            </button>
-        </div>
     </div>
 </div>
 
@@ -1141,6 +1266,8 @@ const ACHIEVEMENTS_DEFS = {
     perfect_week:     { name: 'Perfect Week',     icon: '📅',  desc: 'Complete all habits for all 7 days',          prestige: false, criteria: 'Complete all habits every day this week' },
     habit_builder:    { name: 'Habit Builder',    icon: '🔨',  desc: 'Create your 3rd and 5th habits',             prestige: false, criteria: 'Create 3+ habits' },
     comeback:         { name: 'Comeback',         icon: '🔥',  desc: 'Rebuild a streak after it broke',            prestige: false, criteria: 'Break a streak, then rebuild it' },
+    streak_30:        { name: '30-Day Streak',    icon: '🏆',  desc: 'Reach a 30-day streak on any habit',         prestige: false, criteria: 'Achieve a 30-day streak on any habit' },
+    streak_60:        { name: '60-Day Streak',    icon: '⚡',  desc: 'Reach a 60-day streak on any habit',         prestige: false, criteria: 'Achieve a 60-day streak on any habit' },
     one_percent_club: { name: 'The 1% Club',      icon: '💎',  desc: '365 consecutive days on one habit',          prestige: true,  criteria: 'Achieve 365-day streak on any habit' },
     atomic_identity:  { name: 'Atomic Identity',  icon: '⚛️', desc: 'All habits in Identity phase',               prestige: true,  criteria: 'Reach Identity phase on all habits' },
     perfect_quarter:  { name: 'Perfect Quarter',  icon: '👑',  desc: '90 days straight, zero missed days',         prestige: true,  criteria: 'Complete 90 days with no grace days used' },
@@ -1198,6 +1325,7 @@ let editingHabitId = null;
 let newHabit = { name: '', emoji: '🏃', time: 'morning', why: '', bundle: '', color: '#1e3a2f', twoMin: '', stack: '', duration: '', reward: '', diff: 'medium', categoryId: null, reminderTime: '', targetDaysPerWeek: 7 };
 let selectedIdentity = null;
 let activeCategoryFilter = null; // null = show all categories
+let previousScreen = 'screen-home';
 
 /** @returns {string} Today's date as an ISO string e.g. "2026-03-30". */
 function today() { return new Date().toISOString().slice(0, 10); }
@@ -1276,37 +1404,135 @@ function loadLocal() {
  *
  * @@returns {Promise<void>}
  */
+function applyServerState(data) {
+    state.user            = data.user;
+    state.habits          = data.habits          || [];
+    state.completions     = data.completions     || {};
+    state.completionNotes = data.completionNotes || {};
+    state.streaks         = data.streaks         || {};
+    state.bestStreaks     = data.bestStreaks      || {};
+    state.streakData      = data.streakData      || {};
+    state.bestStreakData  = data.bestStreakData   || {};
+    state.categories      = data.categories      || [];
+    state.achievements    = data.achievements    || [];
+    saveLocal();
+}
+
+async function fetchStateFromServer() {
+    return await api('GET', '/api/state');
+}
+
 async function init() {
-    // Instant render from cache
+    console.log('[AtomicMe] init() started');
+
+    // 1. Instant render from localStorage cache
     loadLocal();
     if (state.user) {
+        console.log('[AtomicMe] localStorage cache hit — user:', state.user.name, '— showing home immediately');
         showScreen('screen-home');
+        updateNavActive('screen-home');
         renderHome();
+    } else {
+        // No cached user — show boot loading screen while we wait for the PHP server.
+        // NEVER default to onboarding here; onboarding is shown only when the server
+        // explicitly confirms user = null (genuine new user, not a cold-start race).
+        console.log('[AtomicMe] No cached user — showing boot screen');
+        showScreen('screen-boot');
     }
 
-    // Sync from server
-    try {
-        const data = await api('GET', '/api/state');
-        if (data.user) {
-            state.user            = data.user;
-            state.habits          = data.habits;
-            state.completions     = data.completions;
-            state.completionNotes = data.completionNotes || {};
-            state.streaks         = data.streaks;
-            state.bestStreaks     = data.bestStreaks;
-            state.streakData      = data.streakData || {};
-            state.bestStreakData  = data.bestStreakData || {};
-            state.categories      = data.categories || [];
-            state.achievements    = data.achievements || [];
-            saveLocal();
-            showScreen('screen-home');
-            renderHome();
-            maybeShowWeeklyReview();
-        } else if (!state.user) {
-            showScreen('screen-onboarding');
+    // 2. Try to reach the server. On NativePHP Android, the PHP server can take
+    //    3-8 seconds to boot. We keep retrying until we get a real response.
+    //    IMPORTANT: We NEVER show onboarding just because the server is unreachable.
+    //    Onboarding is shown ONLY when the server explicitly confirms user = null.
+    let data = null;
+    const retryDelays = [0, 1000, 2000, 3000, 4000];
+    for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+        try {
+            if (retryDelays[attempt] > 0) {
+                console.log('[AtomicMe] Retry attempt', attempt, '— waiting', retryDelays[attempt], 'ms');
+                await new Promise(r => setTimeout(r, retryDelays[attempt]));
+            }
+            console.log('[AtomicMe] Fetching /api/state (attempt', attempt, ')');
+            data = await fetchStateFromServer();
+            console.log('[AtomicMe] Server responded on attempt', attempt, '— user:', data && data.user ? data.user.name : 'null');
+            break; // got a response — stop retrying
+        } catch(e) {
+            console.log('[AtomicMe] Attempt', attempt, 'failed:', e && e.message);
+            // server not ready yet, keep retrying
         }
-    } catch(e) {
-        if (!state.user) { showScreen('screen-onboarding'); }
+    }
+
+    if (data && data.user) {
+        // Server confirmed user exists — go to home
+        console.log('[AtomicMe] Server confirmed user — transitioning to home');
+        applyServerState(data);
+        showScreen('screen-home');
+        updateNavActive('screen-home');
+        renderHome();
+        maybeShowWeeklyReview();
+    } else if (data && !data.user) {
+        // Server confirmed NO user in DB — this is a genuine new user
+        if (data.habits) state.habits = data.habits;
+        if (data.completions) state.completions = data.completions;
+        if (data.categories) state.categories = data.categories;
+        showScreen('screen-onboarding');
+    } else {
+        // All retries failed — server still not ready after ~10 seconds.
+        // If localStorage has a user, trust it and stay on home (already showing).
+        // If not, the boot screen is already visible — keep polling every 1.5s.
+        if (!state.user) {
+            // Server still not ready — keep polling every 1.5s.
+            // When we get a response, transition directly without window.location.reload()
+            // because reload() is unreliable inside NativePHP Android WebView.
+            console.log('[AtomicMe] Starting background polling (server not ready after initial retries)');
+            const bgRetry = setInterval(async () => {
+                console.log('[AtomicMe] Polling tick — fetching /api/state');
+                try {
+                    const d = await fetchStateFromServer();
+                    console.log('[AtomicMe] Poll response received, user:', d && d.user ? d.user.name : 'null');
+                    if (d && d.user) {
+                        clearInterval(bgRetry);
+                        // Guard: window.App modules must be initialised before renderHome() works.
+                        // If Vite hasn't finished loading app.js yet, wait up to 2s and retry once.
+                        const doTransition = () => {
+                            try {
+                                console.log('[AtomicMe] Transitioning from boot to home screen');
+                                applyServerState(d);
+                                showScreen('screen-home');
+                                updateNavActive('screen-home');
+                                renderHome();
+                                maybeShowWeeklyReview();
+                                console.log('[AtomicMe] Boot-to-home transition complete');
+                            } catch(err) {
+                                console.error('[AtomicMe] Error during boot-to-home transition:', err);
+                            }
+                        };
+                        if (window.App) {
+                            doTransition();
+                        } else {
+                            console.log('[AtomicMe] window.App not ready, waiting 500ms');
+                            setTimeout(() => {
+                                if (window.App) {
+                                    doTransition();
+                                } else {
+                                    console.warn('[AtomicMe] window.App still not ready after 500ms, attempting transition anyway');
+                                    doTransition();
+                                }
+                            }, 500);
+                        }
+                    } else if (d && !d.user) {
+                        // Confirmed new user
+                        clearInterval(bgRetry);
+                        console.log('[AtomicMe] Poll confirmed new user — showing onboarding');
+                        showScreen('screen-onboarding');
+                    }
+                    // If d is null/undefined, server responded but malformed — keep polling
+                } catch(e) {
+                    console.log('[AtomicMe] Poll failed (server not ready yet):', e && e.message);
+                }
+            }, 1500);
+        }
+        // If we have a cached user, we already showed home screen above — nothing more to do.
     }
 }
 
@@ -1360,7 +1586,6 @@ function renderCategoryBadge(categoryId) {
  * @@param {string} id  The screen element's `id`, e.g. `'screen-home'`.
  * @@returns {void}
  */
-let previousScreen = 'screen-home';
 function showScreen(id) {
     const currentActive = document.querySelector('.screen.active');
     if (currentActive && currentActive.id !== id) { previousScreen = currentActive.id; }
@@ -1368,10 +1593,10 @@ function showScreen(id) {
     const screenEl = document.getElementById(id);
     screenEl.classList.add('active');
     screenEl.scrollTo(0, 0);
-    // Hide bottom nav during onboarding
+    // Hide bottom nav during onboarding and boot loading screen
     const bottomNav = document.querySelector('.bottom-nav');
     if (bottomNav) {
-        if (id === 'screen-onboarding') {
+        if (id === 'screen-onboarding' || id === 'screen-boot') {
             bottomNav.classList.add('hidden');
         } else {
             bottomNav.classList.remove('hidden');
@@ -1420,18 +1645,44 @@ function selectIdentity(el) {
     document.querySelectorAll('.identity-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     selectedIdentity = el.dataset.id;
+
+    // Show or hide the custom identity input panel
+    const customPanel = document.getElementById('ob-custom-panel');
+    if (customPanel) {
+        customPanel.style.display = selectedIdentity === 'custom' ? 'block' : 'none';
+        if (selectedIdentity === 'custom') {
+            setTimeout(() => document.getElementById('ob-custom-label')?.focus(), 50);
+        }
+    }
+
     checkObReady();
 }
 
 /**
+ * Select a custom identity icon in the onboarding icon picker.
+ *
+ * @@param {HTMLElement} btn  The clicked icon button.
+ * @@returns {void}
+ */
+function selectObCustomIcon(btn) {
+    document.querySelectorAll('#ob-custom-icons .ob-custom-icon-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+}
+
+/**
  * Enable or disable the onboarding CTA button based on whether both a name and
- * an identity have been provided.
+ * a valid identity (with custom label if applicable) have been provided.
  *
  * @@returns {void}
  */
 function checkObReady() {
     const name = document.getElementById('user-name').value.trim();
-    document.getElementById('ob-btn').disabled = !(name && selectedIdentity);
+    let ready   = !!(name && selectedIdentity);
+    if (ready && selectedIdentity === 'custom') {
+        const customLabel = (document.getElementById('ob-custom-label')?.value || '').trim();
+        ready = !!customLabel;
+    }
+    document.getElementById('ob-btn').disabled = !ready;
 }
 
 /**
@@ -1442,16 +1693,48 @@ function checkObReady() {
  */
 async function finishOnboarding() {
     const name = document.getElementById('user-name').value.trim();
-    const identity = IDENTITY_MAP[selectedIdentity];
-    state.user = { name, identity: selectedIdentity, identityLabel: identity.label, identityIcon: identity.icon };
+    if (!name || !selectedIdentity) { return; }
+
+    let identityLabel, identityIcon;
+    if (selectedIdentity === 'custom') {
+        identityLabel = (document.getElementById('ob-custom-label')?.value || '').trim();
+        identityIcon  = document.querySelector('#ob-custom-icons .ob-custom-icon-btn.selected')?.dataset.icon || '⭐';
+        if (!identityLabel) { return; }
+    } else {
+        const identity = IDENTITY_MAP[selectedIdentity];
+        if (!identity) { return; }
+        identityLabel = identity.label;
+        identityIcon  = identity.icon;
+    }
+
+    state.user = { name, identity: selectedIdentity, identityLabel, identityIcon };
     saveLocal();
-    showToast(`Welcome, ${name}! You are becoming ${identity.label} 🚀`, 'purple');
+    showToast(`Welcome, ${name}! You are becoming ${identityLabel} 🚀`, 'purple');
     showScreen('screen-home');
     renderHome();
     maybeRequestNotificationPermissionAfterOnboarding();
-    try {
-        await api('POST', '/api/setup', { name, identity: selectedIdentity, identityLabel: identity.label, identityIcon: identity.icon });
-    } catch(e) { /* non-critical */ }
+    // Persist the user profile to the DB with retries. On NativePHP Android the
+    // embedded PHP server may not be ready on the very first launch, so a single
+    // attempt can silently fail leaving the profile missing from SQLite. Without
+    // the profile in the DB, every subsequent cold start that loses localStorage
+    // (Android WebView can clear it) drops the user back to onboarding.
+    const setupPayload = { name, identity: selectedIdentity, identityLabel, identityIcon };
+    let saved = false;
+    for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+            if (attempt > 0) {
+                await new Promise(r => setTimeout(r, 800 * attempt));
+            }
+            const result = await api('POST', '/api/setup', setupPayload);
+            if (result && result.id) { saved = true; break; }
+        } catch(e) { /* keep retrying */ }
+    }
+    if (!saved) {
+        // Last resort: schedule another save attempt after a longer delay
+        setTimeout(async () => {
+            try { await api('POST', '/api/setup', setupPayload); } catch(e) {}
+        }, 5000);
+    }
 }
 
 // ══════════════════════════════════════════
@@ -1470,7 +1753,7 @@ function renderHome() {
     if (window.App) {
         App.screens.home.updateGreeting(state);
         App.screens.home.updateProgressCard(state);
-        App.screens.home.updateDailyQuote();
+        App.screens.home.updateDailyQuote(state);
         App.screens.home.updateHabitsList(state);
     }
 }
@@ -1975,6 +2258,185 @@ function renderStats() {
     if (window.App) {
         App.screens.stats.updateStatsScreen(state);
     }
+    renderCalendar();
+}
+
+// ══════════════════════════════════════════
+//  MONTHLY CALENDAR
+// ══════════════════════════════════════════
+
+/**
+ * Tracks which year+month offset the calendar is currently showing.
+ * 0 = current month, -1 = previous month, etc.
+ *
+ * @type {number}
+ */
+let calMonthOffset = 0;
+
+/**
+ * The date key ('YYYY-MM-DD') that is currently selected in the calendar popup.
+ * Null when no day is selected.
+ *
+ * @type {string|null}
+ */
+let calSelectedDate = null;
+
+/**
+ * Render the monthly calendar card in the Stats screen.
+ * Reads state.completions and state.habits — no extra API calls.
+ *
+ * @returns {void}
+ */
+function renderCalendar() {
+    const gridEl  = document.getElementById('cal-grid');
+    const titleEl = document.getElementById('cal-month-title');
+    const nextBtn = document.getElementById('cal-next-btn');
+    if (!gridEl || !titleEl) { return; }
+
+    const now         = new Date();
+    const year        = now.getFullYear();
+    const month       = now.getMonth();
+    const targetMonth = month + calMonthOffset;
+    const displayDate = new Date(year, targetMonth, 1);
+    const dispYear    = displayDate.getFullYear();
+    const dispMonth   = displayDate.getMonth();
+
+    titleEl.textContent = displayDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    if (nextBtn) {
+        nextBtn.disabled   = calMonthOffset >= 0;
+        nextBtn.style.opacity = calMonthOffset >= 0 ? '0.3' : '1';
+    }
+
+    const todayStr     = today();
+    const activeHabits = state.habits;
+    const totalHabits  = activeHabits.length;
+
+    const firstDay    = new Date(dispYear, dispMonth, 1).getDay();
+    const daysInMonth = new Date(dispYear, dispMonth + 1, 0).getDate();
+
+    const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    let html = DAY_LABELS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+    for (let i = 0; i < firstDay; i++) {
+        html += `<div class="cal-cell cal-empty"></div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const m2      = String(dispMonth + 1).padStart(2, '0');
+        const d2      = String(d).padStart(2, '0');
+        const dateStr = `${dispYear}-${m2}-${d2}`;
+        const isFuture   = dateStr > todayStr;
+        const isToday    = dateStr === todayStr;
+        const isSelected = dateStr === calSelectedDate;
+
+        const completedIds = (state.completions[dateStr] || []).map(String);
+        const doneCount = totalHabits > 0
+            ? completedIds.filter(id => activeHabits.some(h => String(h.id) === id)).length
+            : completedIds.length;
+
+        let cellClass = 'cal-cell';
+        if (isFuture) {
+            cellClass += ' cal-future';
+        } else if (totalHabits > 0 && doneCount >= totalHabits) {
+            cellClass += ' cal-all-done';
+        } else if (doneCount > 0) {
+            cellClass += ' cal-partial';
+        }
+        if (isToday)    { cellClass += ' cal-today'; }
+        if (isSelected) { cellClass += ' cal-selected'; }
+
+        let dotsHtml = '';
+        if (doneCount > 0 && !isFuture) {
+            const maxDots = Math.min(doneCount, 5);
+            dotsHtml = `<div class="cal-dots">${'<div class="cal-dot"></div>'.repeat(maxDots)}</div>`;
+        }
+
+        html += `<div class="${cellClass}" data-cal-date="${dateStr}" onclick="calSelectDay('${dateStr}')"><span class="cal-cell-num">${d}</span>${dotsHtml}</div>`;
+    }
+
+    gridEl.innerHTML = html;
+
+    if (calSelectedDate) {
+        calShowPopup(calSelectedDate);
+    } else {
+        const popup = document.getElementById('cal-day-popup');
+        if (popup) { popup.classList.remove('show'); }
+    }
+}
+
+/**
+ * Navigate the calendar to the previous month.
+ *
+ * @returns {void}
+ */
+function calPrev() {
+    calMonthOffset--;
+    calSelectedDate = null;
+    renderCalendar();
+}
+
+/**
+ * Navigate the calendar to the next month (disabled at current month).
+ *
+ * @returns {void}
+ */
+function calNext() {
+    if (calMonthOffset >= 0) { return; }
+    calMonthOffset++;
+    calSelectedDate = null;
+    renderCalendar();
+}
+
+/**
+ * Select a calendar day cell and show the popup of completed habits.
+ * Tapping the same day again dismisses the popup.
+ *
+ * @param {string} dateStr  ISO date string 'YYYY-MM-DD'.
+ * @returns {void}
+ */
+function calSelectDay(dateStr) {
+    if (dateStr === calSelectedDate) {
+        calSelectedDate = null;
+        const popup = document.getElementById('cal-day-popup');
+        if (popup) { popup.classList.remove('show'); }
+        document.querySelectorAll('.cal-cell.cal-selected').forEach(el => el.classList.remove('cal-selected'));
+        return;
+    }
+    calSelectedDate = dateStr;
+    document.querySelectorAll('.cal-cell.cal-selected').forEach(el => el.classList.remove('cal-selected'));
+    const cell = document.querySelector(`[data-cal-date="${dateStr}"]`);
+    if (cell) { cell.classList.add('cal-selected'); }
+    calShowPopup(dateStr);
+}
+
+/**
+ * Show the day detail popup listing completed habits for the given date.
+ *
+ * @param {string} dateStr  ISO date string 'YYYY-MM-DD'.
+ * @returns {void}
+ */
+function calShowPopup(dateStr) {
+    const popup   = document.getElementById('cal-day-popup');
+    const dateEl  = document.getElementById('cal-popup-date');
+    const itemsEl = document.getElementById('cal-popup-items');
+    if (!popup || !dateEl || !itemsEl) { return; }
+
+    const dateObj = new Date(dateStr + 'T00:00:00');
+    dateEl.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    const completedIds = (state.completions[dateStr] || []).map(String);
+    const doneHabits   = state.habits.filter(h => completedIds.includes(String(h.id)));
+
+    if (doneHabits.length === 0) {
+        itemsEl.innerHTML = `<div class="cal-day-popup-empty">No habits completed this day.</div>`;
+    } else {
+        itemsEl.innerHTML = doneHabits.map(h =>
+            `<div class="cal-day-popup-item"><div class="cal-day-popup-dot"></div><span>${h.emoji} ${h.name}</span></div>`
+        ).join('');
+    }
+
+    popup.classList.add('show');
 }
 
 // ══════════════════════════════════════════
@@ -2482,7 +2944,7 @@ async function handleReminderToggle(enabled) {
         reminders[id] = true;
         saveReminders(reminders);
         scheduleLocalNotification(habit);
-        showToast(`🔔 Reminder set for ${getNotificationTime(habit.time)} (${getTimeLabel(habit.time)})`, 'purple');
+        showToast('Reminder saved \u2014 push notifications coming in a future update.', 'purple');
     } else {
         // Cancel
         const reminders = loadReminders();
@@ -2641,6 +3103,17 @@ function closeProfileSheet() {
  */
 function selectProfileIdentity(el) {
     if (window.App) { App.overlays.profileSheet.selectProfileIdentity(el); }
+}
+
+/**
+ * Select a custom identity icon in the profile sheet icon picker.
+ *
+ * @@param {HTMLElement} btn  The clicked icon button.
+ * @@returns {void}
+ */
+function selectPsCustomIcon(btn) {
+    document.querySelectorAll('#ps-custom-icons .ob-custom-icon-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
 }
 
 /**

@@ -93,22 +93,78 @@ function calcOverallStreak(state) {
 }
 
 // ─────────────────────────────────────────────
-//  Compound chart HTML
+//  Compound growth section HTML
 // ─────────────────────────────────────────────
 
 /**
- * Build the HTML for the compound growth chart bars.
- * Uses the 1% daily improvement model.
+ * Derive the best streak across all habits in state.
  *
- * @returns {string} HTML string of .compound-bar divs.
+ * @param {Object} state  Global application state.
+ * @returns {number}  Best streak in days.
  */
-export function renderCompoundChartHtml() {
-    const points = [1, 4, 8, 13, 26, 52];
-    const maxVal = Math.pow(1.01, 365);
-    return points.map(week => {
-        const val = Math.pow(1.01, week * 7);
-        return `<div class="compound-bar" style="height:${Math.max(4, (val / maxVal) * 100)}%"></div>`;
+function getBestStreak(state) {
+    if (!state.bestStreaks) { return 0; }
+    return Math.max(0, ...Object.values(state.bestStreaks).map(Number));
+}
+
+/**
+ * Build the HTML for the full compound growth section: intro copy, bar chart
+ * with multiplier labels and a "you are here" marker, axis labels, and a
+ * personalised footer line.
+ *
+ * Delegates bar rendering to `chart.js` via the global `App.components.chart`
+ * namespace to avoid duplicating the function.
+ *
+ * @param {Object} state  Global application state.
+ * @returns {string}  HTML string for the compound-chart container and surrounding copy.
+ */
+export function renderCompoundSectionHtml(state) {
+    const bestDay = getBestStreak(state);
+
+    // Segment boundaries that match the chart bars: [0,30), [30,90), [90,180), [180,365), [365+)
+    const segments = [0, 30, 90, 180, 365];
+    let activeSegmentIndex = 0;
+    for (let i = segments.length - 1; i >= 0; i--) {
+        if (bestDay >= segments[i]) { activeSegmentIndex = i; break; }
+    }
+
+    const multipliers = ['1x', '1.3x', '2.5x', '6x', '37x'];
+    const axisLabels  = ['Today', '1 month', '3 months', '6 months', '1 year'];
+    const maxVal      = Math.pow(1.01, 365);
+
+    const bars = segments.map((day, i) => {
+        const val    = day === 0 ? 1 : Math.pow(1.01, day);
+        const height = Math.max(4, (val / maxVal) * 100);
+        const isActive = i === activeSegmentIndex;
+
+        return `<div class="compound-bar-wrap">
+            <div class="compound-bar-multiplier${isActive ? ' compound-bar-multiplier--active' : ''}">${multipliers[i]}</div>
+            ${isActive ? '<div class="compound-bar-you">YOU</div>' : ''}
+            <div class="compound-bar${isActive ? ' compound-bar--active' : ''}" style="height:${height}%"></div>
+        </div>`;
     }).join('');
+
+    const axisHtml = axisLabels.map(l => `<span>${l}</span>`).join('');
+
+    // Personalised footer: tell the user where they are and what's next
+    let footerText;
+    if (bestDay === 0) {
+        footerText = 'Every habit you complete today is your first 1%. Start the curve.';
+    } else if (bestDay < 30) {
+        footerText = `Your best streak is <strong>${bestDay} day${bestDay !== 1 ? 's' : ''}</strong>. Hit 30 days and you'll already be 1.3x better.`;
+    } else if (bestDay < 90) {
+        footerText = `Your best streak is <strong>${bestDay} days</strong>. Keep going to 90 days and you reach 2.5x.`;
+    } else if (bestDay < 180) {
+        footerText = `<strong>${bestDay} days</strong> — you're at 2.5x. Six months in and you'll be 6x better.`;
+    } else if (bestDay < 365) {
+        footerText = `<strong>${bestDay} days</strong> — you're at 6x. One year of 1% daily = 37x. You're almost there.`;
+    } else {
+        footerText = `<strong>${bestDay} days</strong> — you've reached 37x. You are the 1% club.`;
+    }
+
+    return `<div class="compound-chart compound-chart--labeled" id="compound-chart">${bars}</div>
+        <div class="chart-labels">${axisHtml}</div>
+        <p class="compound-footer">${footerText}</p>`;
 }
 
 // ─────────────────────────────────────────────
@@ -242,9 +298,9 @@ export function updateStatsScreen(state) {
     if (totalEl)  { totalEl.textContent  = totalAllTime; }
     if (rateEl)   { rateEl.textContent   = rate + '%'; }
 
-    // Compound chart
-    const chartEl = document.getElementById('compound-chart');
-    if (chartEl) { chartEl.innerHTML = renderCompoundChartHtml(); }
+    // Compound growth section (bars + axis labels + personalised footer)
+    const compoundSectionEl = document.getElementById('compound-section');
+    if (compoundSectionEl) { compoundSectionEl.innerHTML = renderCompoundSectionHtml(state); }
 
     // Weekly grid
     const weekGridEl = document.getElementById('weekly-grid');

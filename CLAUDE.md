@@ -142,7 +142,7 @@ All API routes live in `routes/web.php` (not `api.php`) so they share the web mi
 ### Models
 
 - **`UserProfile`** — single row (id=1), stores name + identity choice. Table: `user_profile`.
-- **`Habit`** — stores all 4-Law fields from the add form. Has `calculateStreak()` and `calculateBestStreak()` methods, plus `toApiArray()` that maps DB column names to the camelCase JS field names the frontend expects.
+- **`Habit`** — stores all 4-Law fields from the add form. Has `calculateStreakData()` and `calculateBestStreakData()` methods (accept optional preloaded dates to avoid N+1 queries), plus `toApiArray()` that maps DB column names to the camelCase JS field names the frontend expects. `calculatePhase()` accepts optional precomputed streak and completion count to avoid extra queries.
 - **`HabitCompletion`** — `habit_id` + `completed_date` (unique together). Cascade-deleted when a habit is deleted.
 - **`WeeklyReflection`** — `user_profile_id` + `week_of` (date, unique per user per week) + `note` (nullable text). Stores Sunday reflections.
 
@@ -178,9 +178,16 @@ Requires Android Studio, 7-Zip, and `ANDROID_HOME` + `adb` in PATH. Full setup d
 
 2. **Composer timeout during build** — `vendor/nativephp/mobile/src/Traits/PreparesBuild.php:247` has a 300s timeout that's too short. Change to `->timeout(900)`. This resets after `composer update`.
 
-3. **PHP binaries must be downloaded separately** — `native:install` downloads them from `bin.nativephp.com`, but the fetch can fail silently. If `libphp.a` is missing in `nativephp/android/app/src/main/cpp/staticLibs/arm64-v8a/`, manually download from `https://bin.nativephp.com/main/versions.json` and extract with 7-Zip into `nativephp/android/app/src/main/`.
+3. **PHP binaries must be downloaded separately** — `native:install` downloads them from `bin.nativephp.com`, but the fetch can fail silently. If `libphp.a` is missing in `nativephp/android/app/src/main/staticLibs/arm64-v8a/`, copy from the cached `staticLibs/arm64-v8a/` in the project root. The `cpp/staticLibs/` path is wrong — CMakeLists.txt looks for `cpp/../staticLibs/` which resolves to `main/staticLibs/`.
 
-4. **Wireless ADB recommended** — USB detection is unreliable (especially Xiaomi). Use `adb pair <IP:PORT>` then `adb connect <IP:PORT>` via Developer Options → Wireless Debugging.
+4. **`gradlew.bat` not found during `native:run`** — `native:run android` often fails with "'gradlew.bat' is not recognized". Workaround: after `native:run` fails at the Gradle step, fix `sdk.dir` and run Gradle directly:
+   ```bash
+   echo "sdk.dir=C:/Users/pclogiklabs/AppData/Local/Android/Sdk" > nativephp/android/local.properties
+   cd nativephp/android && ./gradlew.bat assembleDebug
+   adb install -r nativephp/android/app/build/outputs/apk/debug/app-debug.apk
+   ```
+
+5. **Wireless ADB recommended** — USB detection is unreliable (especially Xiaomi). Use `adb pair <IP:PORT>` then `adb connect <IP:PORT>` via Developer Options → Wireless Debugging.
 
 ```bash
 $env:ANDROID_HOME = "C:\Users\pclogiklabs\AppData\Local\Android\Sdk"
@@ -253,18 +260,35 @@ if (result.ok) { dispatch({ type: 'MY_ACTION', payload: result.data }); }
 
 The modular architecture is fully tested with Pest v4. Run:
 ```bash
-php artisan test                    # All 98 tests
+php artisan test                    # All 123 tests
 php artisan test --filter=HabitTest  # Specific test class
 npm run build                       # Verify JS/CSS build succeeds
 ```
 
+## Performance Notes
+
+- **N+1 queries eliminated** — `StateController` preloads all completion dates in one bulk query, then passes them to `calculateStreakData()`, `calculateBestStreakData()`, and `calculatePhase()` via optional parameters. `/api/state` fires a fixed 5 queries regardless of habit count.
+- **Session/cache use file driver** — not database. Avoids SQLite writes on every request (important for on-device performance).
+- **Font loading is non-blocking** — uses `rel="preload"` with `onload` swap pattern, not a render-blocking `<link rel="stylesheet">`.
+- **Splash screen** — branded `splash.xml` drawable in `nativephp/android/app/src/main/res/drawable/`. Shows atom + checkmark design during PHP runtime boot (~3-5s, inherent to NativePHP).
+- **Version must be set** — `NATIVEPHP_APP_VERSION` in `.env` must be a real semver (e.g. `1.0.0`), not `DEBUG`. `DEBUG` forces 97MB ZIP re-extraction on every cold start.
+- **Cold-start retry** — `init()` in `welcome.blade.php` retries the `/api/state` fetch once (800ms delay) if the first attempt fails. On NativePHP Android, the embedded PHP server may not be ready when the WebView first renders. Without the retry, the app falls through to onboarding even when a user profile exists in the DB.
+- **Identity-specific daily quotes** — `home.js` selects motivational prompts based on the user's chosen identity (athlete, learner, creator, etc.) rather than showing generic quotes.
+
+## Play Store
+
+- **Bundle ID:** `com.atomicme.app` (set in `.env` as `NATIVEPHP_APP_ID`)
+- **Privacy policy:** `https://dragan002.github.io/mobileAppFinale/docs/privacy-policy.html`
+- **Contact email:** `draganvujic29@gmail.com`
+- **Category:** Health & Fitness
+- **Content rating:** Everyone
+
 ## Project Status
 
-**March 2026 Updates:**
-- ✅ Code Refactoring Complete: Extracted 15 modular JS files from monolithic Blade template
-- ✅ Architecture: State reducer + API service + utilities fully decoupled
-- ✅ Tests: All 98 tests passing with zero regressions
-- ✅ Play Store Readiness: Privacy policy created, critical blockers resolved, ready for submission
-- ✅ Bug Fixes: Growth screen consistency calculation fixed, layout issues resolved
+**April 2026 Updates:**
+- All 123 tests passing (354 assertions)
+- Performance optimized: N+1 queries eliminated, non-blocking font, file-based session/cache
+- Custom app icon and branded splash screen
+- Play Store readiness: Privacy policy created, critical blockers resolved
 
 See `PLAYSTORE_CRITICAL_BLOCKERS_STATUS.md` and `LAYOUT_ISSUES_AND_FIXES.md` for recent fixes and compliance status.
