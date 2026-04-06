@@ -189,9 +189,34 @@ Requires Android Studio, 7-Zip, and `ANDROID_HOME` + `adb` in PATH. Full setup d
 
 5. **Wireless ADB recommended** — USB detection is unreliable (especially Xiaomi). Use `adb pair <IP:PORT>` then `adb connect <IP:PORT>` via Developer Options → Wireless Debugging.
 
+6. **Xiaomi MIUI blocks `adb install` silently** — `adb install` fails with a blank error on MIUI devices unless "Install via USB" is enabled. Go to Settings → Additional settings → Developer options → **Install via USB** → ON.
+
+7. **`native:install` alone does NOT replace build.gradle.kts placeholders** — `REPLACE_COMPILE_SDK`, `REPLACEMECODE`, `REPLACE_APP_ID` etc. are only substituted by `native:run`. Always run `native:run android` (even knowing it will fail at Gradle) to get a fully configured project before running Gradle manually.
+
+8. **Pass device UDID to skip interactive prompt** — `native:run android` prompts for device selection when multiple devices are connected. Pass the UDID as a positional argument to skip it:
+   ```bash
+   php artisan native:run android 192.168.0.16:43663 --build=debug
+   ```
+   Get the current device ID with `adb devices -l`. Note: the IP-based serial can change; use `adb devices` to confirm before each build.
+
+**Full correct build sequence (Windows):**
 ```bash
-$env:ANDROID_HOME = "C:\Users\pclogiklabs\AppData\Local\Android\Sdk"
-php artisan native:run android
+export ANDROID_HOME="C:/Users/pclogiklabs/AppData/Local/Android/Sdk"
+
+# 1. Run native:run with device UDID — will fail at Gradle, that's expected
+php artisan native:run android <device-udid> --build=debug
+
+# 2. Fix sdk.dir (gets wiped by native:install inside native:run)
+echo "sdk.dir=C:/Users/pclogiklabs/AppData/Local/Android/Sdk" > nativephp/android/local.properties
+
+# 3. Copy PHP binaries if missing (bin.nativephp.com fetch fails silently)
+cp staticLibs/arm64-v8a/* nativephp/android/app/src/main/staticLibs/arm64-v8a/
+
+# 4. Build APK
+cd nativephp/android && ./gradlew.bat assembleDebug
+
+# 5. Install (ensure "Install via USB" is ON for Xiaomi devices)
+adb install -r nativephp/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ## Windows PHP Requirements
