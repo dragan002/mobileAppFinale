@@ -4,12 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#0F1221">
+    <meta name="theme-color" content="#FAF6F0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AtomicMe</title>
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" rel="stylesheet"></noscript>
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="{{ asset('css/design-tokens.css') }}">
     @vite('resources/js/app.js')
     <style>
@@ -527,6 +531,7 @@
         .prestige-tag { display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #F59E0B; background: #F59E0B18; border-radius: 4px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; }
         .section-title.prestige { color: #F59E0B; }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/editorial.css') }}">
 </head>
 <body>
 
