@@ -117,7 +117,7 @@ export function showMilestone(value, unit) {
     if (emojiEl) {
         _spawnConfetti(
             emojiEl,
-            ['#a78bfa', '#f97316', '#22c55e', '#f59e0b', '#ec4899'],
+            ['#E8743C', '#C45A29', '#7C6FE0', '#3F8B57', '#F0A26B'],
             8
         );
     }
@@ -145,8 +145,8 @@ export function showAchievementCelebration(achievement) {
     const emojiEl = document.getElementById('milestone-emoji');
     if (emojiEl) {
         const confettiColors = def.prestige
-            ? ['#F59E0B', '#EAB308', '#FCD34D', '#FBBF24', '#a78bfa']
-            : ['#a78bfa', '#f97316', '#22c55e', '#f59e0b', '#ec4899'];
+            ? ['#C45A29', '#E8743C', '#F0A26B', '#7C6FE0', '#3F8B57']
+            : ['#E8743C', '#C45A29', '#7C6FE0', '#3F8B57', '#F0A26B'];
         _spawnConfetti(emojiEl, confettiColors, 12);
     }
 }

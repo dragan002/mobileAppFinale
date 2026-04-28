@@ -7,13 +7,10 @@
     <meta name="theme-color" content="#FAF6F0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>AtomicMe</title>
-    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800&display=swap" rel="stylesheet"></noscript>
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="{{ asset('css/design-tokens.css') }}">
     @vite('resources/js/app.js')
     <style>
@@ -649,10 +646,10 @@
                 </div>
             </div>
 
-            <div id="ps-custom-panel" style="display:none; background: #0F1221; border: 2px solid #A855F7; border-radius: 1rem; padding: 1rem; margin-top: 0.5rem;">
-                <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Your identity label</div>
+            <div id="ps-custom-panel" style="display:none; border-radius: 1rem; padding: 1rem; margin-top: 0.5rem;">
+                <div style="font-size: 0.78rem; margin-bottom: 0.5rem;" class="custom-panel-label">Your identity label</div>
                 <input type="text" id="ps-custom-label" class="profile-form-input" placeholder='e.g. "The Focused Parent"' maxlength="30" style="margin-bottom: 0.875rem;">
-                <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Choose an icon</div>
+                <div style="font-size: 0.78rem; margin-bottom: 0.5rem;" class="custom-panel-label">Choose an icon</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="ps-custom-icons">
                     <button class="ob-custom-icon-btn selected" data-icon="⭐" type="button" onclick="selectPsCustomIcon(this)">⭐</button>
                     <button class="ob-custom-icon-btn" data-icon="🌟" type="button" onclick="selectPsCustomIcon(this)">🌟</button>
@@ -691,11 +688,11 @@
 
     <div class="profile-sheet-section" style="padding: 0 1.25rem;">
         <label class="profile-form-label" style="margin-bottom: 0.75rem;">Reflect on your completion:</label>
-        <textarea id="note-input" placeholder="How did it feel? What did you notice? (optional)" style="width: 100%; background: #1A1F35; border: 1px solid #2A3152; border-radius: 0.75rem; padding: 0.75rem; color: #EAEDF6; font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 80px; outline: none;" maxlength="500"></textarea>
-        <div style="font-size: 0.7rem; color: #5A6180; margin-top: 0.5rem;">Max 500 characters</div>
+        <textarea id="note-input" placeholder="How did it feel? What did you notice? (optional)" style="width: 100%; border-radius: 0.75rem; padding: 0.75rem; font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 80px; outline: none;" maxlength="500"></textarea>
+        <div style="font-size: 0.7rem; margin-top: 0.5rem;" class="note-sheet-hint">Max 500 characters</div>
 
         <button class="btn-save-profile" onclick="saveNote()" style="margin-top: 1rem;">Save Note</button>
-        <button onclick="closeNoteSheet()" style="width: 100%; padding: 0.75rem; background: transparent; border: 1px solid #2A3152; border-radius: 0.75rem; color: #EAEDF6; margin-top: 0.5rem; font-family: inherit; cursor: pointer;">Skip</button>
+        <button onclick="closeNoteSheet()" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; margin-top: 0.5rem; font-family: inherit; cursor: pointer;">Skip</button>
     </div>
 </div>
 
@@ -738,11 +735,11 @@
         </div>
     </div>
 
-    <div id="ob-custom-panel" style="display:none; margin-bottom: 1.5rem; background: #1A1F35; border: 2px solid #A855F7; border-radius: 1rem; padding: 1rem;">
-        <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Your identity label</div>
+    <div id="ob-custom-panel" style="display:none; margin-bottom: 1.5rem; border-radius: 1rem; padding: 1rem;">
+        <div style="font-size: 0.78rem; margin-bottom: 0.5rem;" class="custom-panel-label">Your identity label</div>
         <input type="text" id="ob-custom-label" placeholder='e.g. "The Focused Parent"' maxlength="30" oninput="checkObReady()"
-            style="width: 100%; background: #0F1221; border: 2px solid #2A3152; border-radius: 0.625rem; padding: 0.75rem 1rem; color: #EAEDF6; font-size: 0.92rem; font-family: inherit; outline: none; margin-bottom: 0.875rem;">
-        <div style="font-size: 0.78rem; color: #8B92AB; margin-bottom: 0.5rem;">Choose an icon</div>
+            style="width: 100%; border-radius: 0.625rem; padding: 0.75rem 1rem; font-size: 0.92rem; font-family: inherit; outline: none; margin-bottom: 0.875rem;">
+        <div style="font-size: 0.78rem; margin-bottom: 0.5rem;" class="custom-panel-label">Choose an icon</div>
         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="ob-custom-icons">
             <button class="ob-custom-icon-btn selected" data-icon="⭐" type="button" onclick="selectObCustomIcon(this)">⭐</button>
             <button class="ob-custom-icon-btn" data-icon="🌟" type="button" onclick="selectObCustomIcon(this)">🌟</button>
@@ -771,7 +768,7 @@
 <div class="screen" id="screen-home">
     <div class="app-header">
         <div class="header-greeting">
-            <h2 id="home-greeting">Good morning 👋</h2>
+            <h2 id="home-greeting">Good morning</h2>
             <p id="home-date"></p>
         </div>
         <div class="avatar" id="home-avatar" onclick="openProfileSheet()">?</div>
@@ -1013,7 +1010,7 @@
 <div class="screen" id="screen-stats">
     <div class="app-header">
         <div class="header-greeting">
-            <button onclick="showTab('screen-home', null)" style="background:none;border:none;padding:0;color:#A855F7;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
+            <button onclick="showTab('screen-home', null)" class="back-to-today-btn" style="background:none;border:none;padding:0;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
             <h2>Your Progress</h2>
             <p>Every rep is a vote for who you're becoming.</p>
         </div>
@@ -1068,7 +1065,7 @@
 <div class="screen" id="screen-growth">
     <div class="app-header">
         <div class="header-greeting">
-            <button onclick="showTab('screen-home', null)" style="background:none;border:none;padding:0;color:#A855F7;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
+            <button onclick="showTab('screen-home', null)" class="back-to-today-btn" style="background:none;border:none;padding:0;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:0.2rem;display:block;">← Today</button>
             <h2>Compound Growth</h2>
             <p>How consistent are you, really?</p>
         </div>
@@ -1117,8 +1114,8 @@
 
     <div class="stats-section">
         <div id="achievements-empty-state" style="padding: 0 1.25rem; margin-bottom: 1.25rem; display: none;">
-            <p style="font-size: 0.85rem; color: #8B92AB; line-height: 1.6;">
-                Complete habits to unlock badges. Start with a <strong style="color: #EAEDF6;">Perfect Day</strong> — complete all your habits today.
+            <p style="font-size: 0.85rem; line-height: 1.6;" class="achievements-empty-text">
+                Complete habits to unlock badges. Start with a <strong>Perfect Day</strong> — complete all your habits today.
             </p>
         </div>
 
@@ -1143,7 +1140,7 @@
     <div class="detail-header">
         <button class="back-btn" onclick="goBackFromDetail()">←</button>
         <h2 id="detail-title">Habit</h2>
-        <button class="detail-edit-btn" onclick="showEditHabit(currentDetailHabitId)" title="Edit habit" style="background:none;border:none;color:#C084FC;font-size:0.85rem;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;">Edit</button>
+        <button class="detail-edit-btn" onclick="showEditHabit(currentDetailHabitId)" title="Edit habit" style="background:none;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;padding:0.25rem 0.5rem;">Edit</button>
         <button class="detail-delete-btn" onclick="deleteHabitFromDetail()" title="Delete habit">🗑</button>
     </div>
     <div class="detail-body">
@@ -1168,15 +1165,15 @@
             <div class="stat-box"><div class="val" id="detail-rate">0%</div><div class="lbl">30-day Rate</div></div>
         </div>
 
-        <div class="phase-card" id="detail-phase-card" style="margin: 0 1.25rem 1rem; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 1rem; padding: 1rem; display: none;">
+        <div class="phase-card" id="detail-phase-card" style="margin: 0 1.25rem 1rem; border-radius: 1rem; padding: 1rem; display: none;">
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                 <div id="detail-phase-icon" style="font-size: 1.5rem;">🌱</div>
                 <div>
-                    <div id="detail-phase-label" style="font-weight: 600; font-size: 0.95rem; color: #EAEDF6;">Phase Label</div>
-                    <div id="detail-phase-consistency" style="font-size: 0.7rem; color: #8B92AB;"></div>
+                    <div id="detail-phase-label" style="font-weight: 600; font-size: 0.95rem;" class="phase-label-text">Phase Label</div>
+                    <div id="detail-phase-consistency" style="font-size: 0.7rem;" class="phase-consistency-text"></div>
                 </div>
             </div>
-            <div id="detail-phase-description" style="font-size: 0.8rem; color: #A5ADBE; line-height: 1.4;">Phase description</div>
+            <div id="detail-phase-description" style="font-size: 0.8rem; line-height: 1.4;" class="phase-description-text">Phase description</div>
         </div>
 
         <div class="heatmap-wrap">
@@ -1189,7 +1186,7 @@
         <div class="insight-card" id="detail-insight"></div>
 
         <div class="notes-timeline" id="detail-notes-timeline" style="padding: 0 1.25rem; margin-bottom: 1.25rem; display: none;">
-            <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: #EAEDF6;">Your Journey</h3>
+            <h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;">Your Journey</h3>
             <div id="detail-notes-list"></div>
         </div>
 
@@ -1210,7 +1207,7 @@
             <div class="reminder-card-info">
                 <div class="reminder-card-title">Daily Reminder</div>
                 <div class="reminder-card-sub">
-                    Remind me at <input type="time" id="detail-reminder-time" style="width:80px;background:#1A1F35;border:1px solid #2A3152;border-radius:0.4rem;color:#EAEDF6;padding:0.25rem 0.5rem;font-family:inherit;font-size:0.85rem;" onchange="handleReminderTimeChange(this.value)">
+                    Remind me at <input type="time" id="detail-reminder-time" style="width:80px;border-radius:0.4rem;padding:0.25rem 0.5rem;font-family:inherit;font-size:0.85rem;" onchange="handleReminderTimeChange(this.value)">
                 </div>
                 <div style="font-size:0.68rem;color:#5A6180;margin-top:0.35rem;">Push notifications coming soon</div>
             </div>
@@ -1942,9 +1939,9 @@ function renderDetailNotes(habitId) {
         const dateObj = new Date(item.date);
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-        return `<div style="background: rgba(168, 85, 247, 0.08); border-left: 3px solid #A855F7; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-            <div style="font-size: 0.7rem; color: #8B92AB; margin-bottom: 0.25rem;">${dayName}</div>
-            <div style="font-size: 0.85rem; color: #EAEDF6; line-height: 1.4;">"${item.note}"</div>
+        return `<div class="note-card">
+            <div class="note-card-date">${dayName}</div>
+            <div class="note-card-text">"${item.note}"</div>
         </div>`;
     }).join('');
 

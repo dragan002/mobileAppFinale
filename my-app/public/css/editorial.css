@@ -900,17 +900,144 @@ h1, h2,
     color: var(--ec-accent-deep) !important;
 }
 
-/* Override hardcoded inline styles where they leak through */
-[style*="#1A1F35"] { background-color: var(--ec-surface) !important; }
-[style*="#0F1221"] { background-color: var(--ec-bg) !important; }
-[style*="#2A3152"] { border-color: var(--ec-line) !important; }
-[style*="#EAEDF6"] { color: var(--ec-ink) !important; }
-[style*="color: #8B92AB"],
-[style*="color:#8B92AB"] { color: var(--ec-ink-muted) !important; }
-[style*="color: #5A6180"],
-[style*="color:#5A6180"] { color: var(--ec-ink-muted) !important; }
-[style*="#A855F7"]:not(.color-btn) { color: var(--ec-accent-deep) !important; }
-[style*="#C084FC"]:not(.color-btn) { color: var(--ec-accent) !important; }
+/* ─── Inline-style leak overrides ─────────────────────────────────────────
+ * Catch-all attribute selectors for hardcoded dark-theme colours that
+ * appear in inline `style=""` attributes throughout welcome.blade.php.
+ * These rules use `!important` because inline styles have higher specificity
+ * than any class-based rule, so this is the only way to override them
+ * without editing every blade attribute.
+ *
+ * NOTE: substring match is intentional — `#8B92AB` will also match
+ * `#8B92AB22` (8-digit hex with alpha), which is fine since both are dark
+ * muted greys we want to convert to the editorial muted ink.
+ */
+
+/* Background colour leaks */
+[style*="background:#1A1F35"],
+[style*="background: #1A1F35"],
+[style*="background-color:#1A1F35"],
+[style*="background-color: #1A1F35"] { background-color: var(--ec-surface) !important; }
+
+[style*="background:#0F1221"],
+[style*="background: #0F1221"],
+[style*="background-color:#0F1221"],
+[style*="background-color: #0F1221"] { background-color: var(--ec-bg) !important; }
+
+[style*="background:#242B45"],
+[style*="background: #242B45"] { background-color: var(--ec-sunken) !important; }
+
+[style*="background:#151929"],
+[style*="background: #151929"] { background-color: var(--ec-bg) !important; }
+
+/* Border colour leaks */
+[style*="border:1px solid #2A3152"],
+[style*="border: 1px solid #2A3152"],
+[style*="border:2px solid #2A3152"],
+[style*="border: 2px solid #2A3152"],
+[style*="border-color:#2A3152"],
+[style*="border-color: #2A3152"] { border-color: var(--ec-line) !important; }
+
+[style*="border:2px solid #A855F7"],
+[style*="border: 2px solid #A855F7"] { border-color: var(--ec-accent) !important; }
+
+/* Text colour leaks */
+[style*="color:#EAEDF6"],
+[style*="color: #EAEDF6"] { color: var(--ec-ink) !important; }
+
+[style*="color:#8B92AB"],
+[style*="color: #8B92AB"] { color: var(--ec-ink-muted) !important; }
+
+[style*="color:#5A6180"],
+[style*="color: #5A6180"] { color: var(--ec-ink-muted) !important; }
+
+[style*="color:#A5ADBE"],
+[style*="color: #A5ADBE"] { color: var(--ec-ink-soft) !important; }
+
+[style*="color:#A855F7"]:not(.color-btn),
+[style*="color: #A855F7"]:not(.color-btn) { color: var(--ec-accent-deep) !important; }
+
+[style*="color:#C084FC"]:not(.color-btn),
+[style*="color: #C084FC"]:not(.color-btn) { color: var(--ec-accent-deep) !important; }
+
+/* Stronger overrides for elements that also carry inline backgrounds AND borders */
+#ob-custom-panel input[type="text"],
+#ps-custom-panel input[type="text"],
+#delete-sheet p:first-child,
+#delete-sheet p:nth-child(2),
+#delete-sheet button:last-child,
+#note-sheet textarea,
+#note-sheet button:last-child {
+    background: var(--ec-surface) !important;
+    border-color: var(--ec-line) !important;
+}
+#delete-sheet p:first-child {
+    color: var(--ec-ink) !important;
+    background: transparent !important;
+}
+#delete-sheet p:nth-child(2) {
+    color: var(--ec-ink-soft) !important;
+    background: transparent !important;
+}
+#delete-sheet button:last-child {
+    color: var(--ec-ink-soft) !important;
+    background: transparent !important;
+}
+#note-sheet textarea {
+    color: var(--ec-ink) !important;
+}
+#note-sheet button:last-child {
+    color: var(--ec-ink-soft) !important;
+    background: transparent !important;
+}
+#note-sheet .note-sheet-hint { color: var(--ec-ink-muted) !important; }
+
+/* Reminder time input (inside detail reminder card) */
+#detail-reminder-time {
+    background: var(--ec-surface) !important;
+    border: 1px solid var(--ec-line) !important;
+    color: var(--ec-ink) !important;
+    color-scheme: light;
+}
+
+/* Phase card text (inline-styled but now class-based for explicit override) */
+.phase-card { background: var(--ec-accent-soft) !important; border: 1px solid var(--ec-accent) !important; }
+.phase-label-text { color: var(--ec-ink) !important; }
+.phase-consistency-text { color: var(--ec-ink-muted) !important; }
+.phase-description-text { color: var(--ec-ink-soft) !important; }
+
+/* Back-to-Today header link */
+.back-to-today-btn { color: var(--ec-accent-deep) !important; }
+
+/* Notes timeline cards (replaces hardcoded purple template) */
+.note-card {
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-line);
+    border-left: 3px solid var(--ec-accent);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.note-card-date {
+    font-size: 0.65rem;
+    color: var(--ec-ink-muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+.note-card-text {
+    font-size: 0.875rem;
+    color: var(--ec-ink);
+    line-height: 1.45;
+    font-family: var(--font-serif);
+    font-style: italic;
+}
+.notes-timeline h3 {
+    color: var(--ec-ink) !important;
+    font-family: var(--font-serif) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.3px;
+}
 
 /* Category badge colours stay variable but soften background opacity */
 .category-badge {
@@ -919,5 +1046,70 @@ h1, h2,
     color: var(--ec-accent-deep) !important;
 }
 
-/* ─── Final touch: ensure body & meta theme follow editorial cream ──────── */
-html { background: var(--ec-bg) !important; }
+/* ─── Targeted polish (UX agent findings) ─────────────────────────────────
+ * Reduce amber overuse — reserve accent for streak chip + progress fill.
+ * Tone down secondary accents to soft amber or neutral.
+ */
+
+/* Heatmap done cells: from solid amber → softer amber so the standout is the streak hero */
+.heatmap-cell.done { background: var(--ec-accent) !important; opacity: 0.92; }
+
+/* Calendar partial day cells: muted amber soft instead of full amber */
+.cal-cell.cal-partial { background: var(--ec-accent-soft) !important; }
+.cal-cell.cal-partial .cal-cell-num { color: var(--ec-accent-deep) !important; }
+
+/* At-risk habit card border: keep amber but tone the card surface */
+.habit-item.at-risk {
+    border-color: var(--ec-accent) !important;
+    background: var(--ec-surface) !important;
+    border-left: 3px solid var(--ec-accent) !important;
+}
+
+/* Habit name typography — Fraunces serif for content headline (UX finding #11) */
+.habit-name {
+    font-family: var(--font-serif) !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+    letter-spacing: -0.15px;
+    color: var(--ec-ink) !important;
+}
+
+/* Section title: lift weight + tracking (UX finding #11 partial) */
+.section-title {
+    font-size: 0.65rem !important;
+    letter-spacing: 1.6px !important;
+    font-weight: 700 !important;
+    color: var(--ec-ink-muted) !important;
+}
+
+/* Streak count circle: clamp font-size for 3-digit streaks (QA finding #12) */
+.streak-count-num {
+    font-size: clamp(1.6rem, 9vw, 2.4rem) !important;
+}
+
+/* Toast purple: deeper amber for WCAG AA contrast (4.7:1 white-on-amber-deep) */
+.toast.purple {
+    background: var(--ec-accent-deep) !important;
+    color: white !important;
+}
+
+/* Delete button red: warm editorial red instead of bright dark-theme #ef4444 */
+.btn-danger,
+#delete-sheet-confirm {
+    background: #B84A3A !important;
+    background-image: none !important;
+    color: white !important;
+}
+
+/* Helper labels added to replace hardcoded inline colour spans */
+.custom-panel-label { color: var(--ec-ink-muted) !important; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; }
+.achievements-empty-text { color: var(--ec-ink-soft) !important; }
+.achievements-empty-text strong { color: var(--ec-ink) !important; }
+
+/* Apply Fraunces feature settings only on actual heading nodes (not utilities) */
+h1.am-serif, h2.am-serif, .am-serif h1, .am-serif h2 {
+    font-feature-settings: "ss01";
+}
+
+/* Final touch: ensure body & html paint cream even if everything else fails */
+html, body { background: var(--ec-bg) !important; }

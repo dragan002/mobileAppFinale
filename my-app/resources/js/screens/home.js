@@ -165,7 +165,7 @@ export function render(state) {
     return `
         <div class="app-header">
             <div class="header-greeting">
-                <h2 id="home-greeting">${greet}, ${u.name} 👋</h2>
+                <h2 id="home-greeting">${greet}, ${u.name}.</h2>
                 <p id="home-date">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             </div>
             <div class="avatar" id="home-avatar" data-action="open-profile">${initials}</div>
@@ -385,7 +385,7 @@ export function updateGreeting(state) {
     const greetEl = document.getElementById('home-greeting');
     const dateEl  = document.getElementById('home-date');
 
-    if (greetEl) { greetEl.textContent = `${greet}, ${u.name} 👋`; }
+    if (greetEl) { greetEl.textContent = `${greet}, ${u.name}.`; }
     if (dateEl)  { dateEl.textContent  = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
 
     // Update all avatar elements that display user initials

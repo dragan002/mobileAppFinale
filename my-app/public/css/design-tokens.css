@@ -19,7 +19,7 @@
     --ec-line-soft:  #EFE9DD;   /* softer divider */
     --ec-ink:        #1A1714;   /* primary ink */
     --ec-ink-soft:   #5C544A;   /* secondary ink */
-    --ec-ink-muted:  #9A9082;   /* muted ink */
+    --ec-ink-muted:  #7A7066;   /* muted ink (WCAG AA on cream — 4.6:1) */
     --ec-accent:     #E8743C;   /* sunrise amber */
     --ec-accent-deep:#C45A29;   /* amber pressed */
     --ec-accent-soft:#FBE9DC;   /* amber soft */
@@ -62,8 +62,8 @@
 
     /* ── TEXT ── */
     --text-primary:         #1A1714;
-    --text-muted:           #9A9082;
-    --text-faint:           #B5AC9C;
+    --text-muted:           #7A7066;
+    --text-faint:           #9A9082;
     --text-mid:             #5C544A;
 
     /* ── STREAKS ── */
